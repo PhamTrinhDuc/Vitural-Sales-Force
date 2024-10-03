@@ -106,9 +106,9 @@ def chat_with_history(query: str, history) -> Tuple[str, str]:
         results['out_text'] = response
     
     memory.chat_memory.add_user_message(query_rewrited)
-    memory.chat_memory.add_ai_message(results['content'])
+    memory.chat_memory.add_ai_message(results['out_text'])
     if isinstance(history, list):
-        history.append((query, results['out_text']))
+        history.append((query_rewrited, results['out_text']))
 
     return "", history
 
@@ -187,7 +187,7 @@ def chat_with_history_copy(query: str) -> str:
         results['out_text'] = response
     
     memory.chat_memory.add_user_message(query_rewrited)
-    memory.chat_memory.add_ai_message(results['content'])
+    memory.chat_memory.add_ai_message(results['out_text'])
 
 
     return results['out_text']

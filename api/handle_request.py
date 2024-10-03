@@ -2,7 +2,10 @@ import random
 import time
 from typing import Dict, Optional, Any
 from source.generate.chat_seasion import QuestionHandler
+from utils.postgres_connecter.postgres_logger import PostgresHandler
 from configs import SYSTEM_CONFIG
+
+DB_LOGGER = PostgresHandler()
 
 
 def handle_request(
@@ -45,8 +48,20 @@ def handle_request(
 
     except Exception as e:
         results['status'] = 500
-        results['message'] = 'An error occurred while processing your request.'
-        print(e)
+        results['message'] = f'An error occurred while processing your request. ERROR: {str(e)}'
 
     results['time_processing'] = f"{time.time() - start_time:.2f}s"
+
+    DB_LOGGER.insert_data(
+        user_name=UserName, 
+        seasion_id=IdRequest, 
+        total_token=results['total_token'],
+        status=results['status'], 
+        error_message=results['message'],
+        human_chat=InputText, 
+        bot_chat=results['content'],
+        time_request=results['time_processing'],
+        toal_cost=results['cost']
+    )
+    
     return results

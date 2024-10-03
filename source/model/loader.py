@@ -1,6 +1,5 @@
 from typing import Optional
 from fastembed import TextEmbedding
-from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from configs.config_system import SYSTEM_CONFIG
 
@@ -24,10 +23,8 @@ class ModelLoader:
     def load_rag_model(self) -> ChatOpenAI:
         rag_model = ChatOpenAI(
             model=self.GPT_MODEL,
-            streaming=True,
             temperature=self.TEMPERATURE_RAG,
-            max_tokens=self.MAX_TOKEN,
-            verbose=True,
+            max_tokens=self.MAX_TOKEN
         )
         return rag_model
     
@@ -35,7 +32,6 @@ class ModelLoader:
         chatchit_model = ChatOpenAI(
             model=self.GPT_MODEL,
             temperature=self.TEMPERATURE_CHAT,
-            max_tokens=self.MAX_TOKEN,
-            verbose=True,
+            max_tokens=self.MAX_TOKEN
         )
         return chatchit_model

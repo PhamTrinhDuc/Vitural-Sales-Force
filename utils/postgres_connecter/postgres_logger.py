@@ -19,6 +19,7 @@ class PostgresHandler:
             port=self.port,
             max_timeout=self.TIMEOUT
         )
+        self.create_table()
         if self.connection is None:
             logging.error(f"Error: {error.upper()}")
 
@@ -29,6 +30,7 @@ class PostgresHandler:
             user_name VARCHAR(255) NOT NULL,
             seasion_id VARCHAR(255) NOT NULL,
             total_token INT,
+            total_cost FLOAT,
             time_request TIMESTAMP,
             status VARCHAR(255),
             error_message TEXT,
@@ -42,26 +44,28 @@ class PostgresHandler:
                 self.connection.commit()
                 logging.info("Table created successfully in PostgreSQL")
         except Exception as e:
+            logging.error(f"Error create table : {e}")
             self.connection.rollback()
 
-    def insert_data(self, user_name: str, seasion_id: str, total_token: int, 
+    def insert_data(self, user_name: str, seasion_id: str, total_token: int, toal_cost: float,
                     time_request: str, status: int, error_message: str, human_chat: str, bot_chat: str):
         
         insert_query = '''
-        INSERT INTO sales_force.log_chat_sales_force(user_name, seasion_id, total_token, time, status, error_message, human_chat, bot_chat)
+        INSERT INTO sales_force.log_chat_sales_force(user_name, seasion_id, total_token, total_cost, time_request, status, error_message, human_chat, bot_chat)
         VALUES(%s, %s, %d, %s, %d, %s, %s, %s)
         '''
         try:
             with self.connection.cursor() as cursor:
-                cursor.execute(insert_query, (user_name, seasion_id, total_token, time, status, error_message, human_chat, bot_chat))
+                cursor.execute(insert_query, (user_name, seasion_id, total_token, toal_cost, time_request, status, error_message, human_chat, bot_chat))
                 self.connection.commit()
                 logging.info("Data inserted successfully in PostgreSQL")
         except Exception as e:
+            logging.error(f"Error insert data: {e}")
             self.connection.rollback()
     
     def get_logging(self):
         select_query = '''
-        SELECT * FROM sales_forces
+        SELECT * FROM sales_forces.log_chat_sales_force
         '''
         df = pd.read_sql_query(select_query, self.connection)
         self.connection.commit()
