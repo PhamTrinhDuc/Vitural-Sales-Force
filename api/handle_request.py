@@ -54,7 +54,7 @@ def handle_request(
 
     DB_LOGGER.insert_data(
         user_name=UserName, 
-        seasion_id=IdRequest, 
+        session_id=IdRequest, 
         total_token=results['total_token'],
         status=results['status'], 
         error_message=results['message'],

@@ -91,13 +91,13 @@
 
 ######### TEST CHAT API CALL ########
 # from source.generate.chat_seasion import QuestionHandler
+from api.handle_request import handle_request
 
-# handler = QuestionHandler()
-# response = handler.chat_session(
-#     input_text="đèn nặng lượng mặt trời", 
-#     user_name="ducpham",
-#     id_request="123")
-# print(response)
+response = handle_request(
+    InputText="đèn nặng lượng mặt trời", 
+    UserName="ducpham",
+    IdRequest="123")
+print(response)
 
 ######### TEST CHATCHIT  ############
 # from langchain_core.prompts import PromptTemplate
@@ -147,7 +147,7 @@
 # with get_openai_callback() as cb:
 #     response = model.invoke("Hello").content
 # print(response)
-# print(cb.total_tokens)
-# print(cb.total_cost)
+# print(type(cb.total_tokens))
+# print(type(cb.total_cost))
 
 # print(time.time() - st)
