@@ -71,11 +71,13 @@
 
 
 ######### TEST RETRIEVER ########
-# from source.retriever.chroma.retriever import Retriever
-# retriever = Retriever()
+from source.retriever.chroma.retriever import Retriever
+retriever = Retriever()
 # response = retriever.get_context(query="KPI xử lý bảo hành điều hòa", 
 #                                  product_name="dieu_hoa")
-# print(response)
+response = retriever.get_info_product(
+    id_product="M&EGD000254",
+    data_path='data/data_private/data_csv/cong_tac.csv')
 
 ######### TEST FUNCTION CALLING ########
 ######### TEST INGEST DATA ########
@@ -91,13 +93,13 @@
 
 ######### TEST CHAT API CALL ########
 # from source.generate.chat_seasion import QuestionHandler
-from api.handle_request import handle_request
+# from api.handle_request import handle_request
 
-response = handle_request(
-    InputText="đèn nặng lượng mặt trời", 
-    UserName="ducpham",
-    IdRequest="123")
-print(response)
+# response = handle_request(
+#     InputText="đèn nặng lượng mặt trời", 
+#     UserName="ducpham",
+#     IdRequest="123")
+# print(response)
 
 ######### TEST CHATCHIT  ############
 # from langchain_core.prompts import PromptTemplate

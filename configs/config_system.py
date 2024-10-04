@@ -40,7 +40,7 @@ class LoadConfig:
     SPECIFIC_PRODUCT_FOLDER_TXT_DIRECTORY = 'data/data_private/data_text'
     CSV_FQA_DIRECTORY = 'data/FAQ/Dieu_Hoa/fqa_dieuhoa.xlsx'
     SIMILAR_PRODUCT_DIRECTORY = 'data/data_private/data_dienmayxanh.csv'
-    CONVERSATION_DIRECTORY = 'conv_storage'
+    CONVERSATION_DIRECTORY = 'conversation_storage'
 
     # LLM_CONFIG
     GPT_MODEL = 'gpt-4o-mini'

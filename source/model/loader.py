@@ -1,4 +1,3 @@
-from typing import Optional
 from fastembed import TextEmbedding
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from configs.config_system import SYSTEM_CONFIG

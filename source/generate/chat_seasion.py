@@ -1,4 +1,7 @@
 import time
+import markdown
+import os
+import pandas as pd
 from typing import Dict, Optional, Any
 from langchain_core.prompts import PromptTemplate
 from langchain_community.callbacks.manager import get_openai_callback
@@ -13,12 +16,11 @@ from configs.config_system import SYSTEM_CONFIG
 
 # Helper functions
 
-class QuestionHandler:
+class Pipline:
     def __init__(self):
         self.LLM_RAG = ModelLoader().load_rag_model()
         self.LLM_CHAT_CHIT = ModelLoader().load_chatchit_model()
         self.USER_HELPER = UserHelper()
-
 
     def _execute_llm_call(self, llm, prompt, structured_output=None):
         with get_openai_callback() as cb:
@@ -31,8 +33,35 @@ class QuestionHandler:
                 "content": response.content if hasattr(response, 'content') else response,
                 "total_token": cb.total_tokens,
                 'cost': cb.total_cost
-            }
+            }    
 
+    def _process_output(self, output_from_llm: str, dataframe: pd.DataFrame) -> Dict[str, Any]:
+        """
+        Get info product in output from llm.
+        Args:
+            - output_from_llm: output of llm.
+            - path_df: data frame constain list product
+        Returns:
+            - results: product information obtained
+        """
+        result = []
+        for index, row in dataframe.iterrows():
+            if any(row['product_name'], row['product_code'], row['lifecare_price']) in output_from_llm:
+                product =  {
+                    "code" : "",
+                    "name" : "",
+                    "link" : ""
+                }
+                product = {
+                    "code": row['product_info_id'],
+                    "name": row['product_name'],
+                    "link": row['file_path']
+                }
+                result.append(product)
+        return result
+    
+    def _format_to_HTML(self):
+        pass
 
     def _rewrite_query(self, query: str, history: str) -> Dict[str, Any]:
         """
@@ -106,7 +135,9 @@ class QuestionHandler:
             context = Retriever().get_context(query=query, product_name=db_name)
             prompt = PromptTemplate(input_variables=['context', 'question'], template=PROMPT_HEADER)
             response = self._execute_llm_call(self.LLM_RAG, prompt.format(context=context, question=query))
-        
+            
+            specified_product_data  = pd.read_csv(os.path.join(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_DIRECTORY, db_name, ".csv"))
+            response['products'] = self._process_output(output_from_llm=response, dataframe=specified_product_data)
         response['total_token'] += result_classify['total_token']
         response['cost'] += result_classify['cost']
         return response
@@ -127,7 +158,7 @@ class QuestionHandler:
         response_elastic, products_info = search_db(demands)
         prompt = PromptTemplate(input_variables=['context', 'question'], template=PROMPT_HEADER)
         response = self._execute_llm_call(self.LLM_RAG, prompt.format(context=response_elastic, question=query))
-        response['products'] = products_info
+        response['products'] = self._process_output(output_from_llm=response, dataframe=pd.DataFrame(products_info))
         return response
 
     # Main function
@@ -176,12 +207,12 @@ class QuestionHandler:
             storage_info_output['total_token'] += result_type['total_token']
             storage_info_output['cost'] += result_type['cost']
 
-            if search_type.startswith("SIMILARITY"):
+            if "SIMILARITY" in search_type: 
                 product_name = search_type.split("|")[1].strip()
                 results = self._handle_similarity_search(query_rewritten, product_name)
-            elif search_type == "ORDER":
+            elif "ORDER" in search_type:
                 results = self._handle_order_query(query_rewritten)
-            elif search_type == "TEXT":
+            elif "TEXT" in search_type:
                 results = self._handle_text_query(query_rewritten)
             else:  # Elastic search
                 results = self._handle_elastic_search(query_rewritten)

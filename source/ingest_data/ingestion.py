@@ -56,7 +56,7 @@ class IngestBuilder:
                 specification = row['specification']
                 product_info = row['product_info']
                 lifecare_price = row['lifecare_price']
-                s1 = f"Product_name: {product_name} - ID: {product_code} - Price: {lifecare_price}\n"
+                s1 = f"Product_name: {product_name} || ID: {product_code} || Price: {lifecare_price}\n"
                 s2 = f"Specifications:\n {specification}\n"
                 stored_data.append(Document(s1 + s2 + "\n"))
 

@@ -1,7 +1,7 @@
 import random
 import time
 from typing import Dict, Optional, Any
-from source.generate.chat_seasion import QuestionHandler
+from source.generate.chat_seasion import Pipline
 from utils.postgres_connecter.postgres_logger import PostgresHandler
 from configs import SYSTEM_CONFIG
 
@@ -34,7 +34,7 @@ def handle_request(
     }
     try:
         if InputText not in('first_text', None, 'terms'):
-             response = QuestionHandler().chat_session(input_text=InputText, id_request=IdRequest, user_name=UserName)
+             response = Pipline().chat_session(input_text=InputText, id_request=IdRequest, user_name=UserName)
              results.update(**response)
             
         elif InputText == 'first_text' or InputText == None:

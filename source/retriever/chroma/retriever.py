@@ -1,5 +1,6 @@
 import os
 import dotenv
+import pandas as pd
 from typing import List, Tuple, Optional
 from langchain_core.documents import Document
 from langchain_community.vectorstores import Chroma
@@ -20,7 +21,7 @@ class Retriever:
         os.makedirs(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_DIRECTORY, exist_ok=True)
         if len(os.listdir(SYSTEM_CONFIG.VECTOR_DATABASE_DIRECTORY)) == 0:
             self.embedding_all_document()
-
+        
     def embedding_all_document(self,
                                data_specific_folder_txt_path: Optional[str] = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_DIRECTORY,
                                db_store_folder_path: Optional[str] = SYSTEM_CONFIG.VECTOR_DATABASE_DIRECTORY,
