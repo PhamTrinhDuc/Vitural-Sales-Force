@@ -55,7 +55,9 @@ def chat_with_history(query: str, history) -> Tuple[str, str]:
 
     history_conversation = get_history()
     query_rewrited = rewrite_query(query=query, history=history_conversation)
+    print("Question:", query_rewrited)
     type = decision_search_type(query_rewrited) # sử dụng function calling để gọi các hàm custom.
+    print("Type:", type)
     results = {"type": type, "out_text": None, "extract_similarity": False}
 
     PROMPT_HEADER_TEMPLATE = PromptTemplate(
@@ -104,11 +106,13 @@ def chat_with_history(query: str, history) -> Tuple[str, str]:
         response = rag_chain.invoke({'context': response_elastic, 
                                      'question': query_rewrited})
         results['out_text'] = response
+
+    print("KQ:", results['out_text'])
     
     memory.chat_memory.add_user_message(query_rewrited)
-    memory.chat_memory.add_ai_message(results['content'])
+    memory.chat_memory.add_ai_message(results['out_text'])
     if isinstance(history, list):
-        history.append((query, results['out_text']))
+        history.append((query_rewrited, results['out_text']))
 
     return "", history
 
@@ -186,8 +190,10 @@ def chat_with_history_copy(query: str) -> str:
                                      'question': query_rewrited})
         results['out_text'] = response
     
+    print("KQ:", results['out_text'])
+    
     memory.chat_memory.add_user_message(query_rewrited)
-    memory.chat_memory.add_ai_message(results['content'])
+    memory.chat_memory.add_ai_message(results['out_text'])
 
 
     return results['out_text']

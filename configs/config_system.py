@@ -43,7 +43,7 @@ class LoadConfig:
     CONVERSATION_DIRECTORY = 'conv_storage'
 
     # LLM_CONFIG
-    GPT_MODEL = 'gpt-4o-mini-2024-07-18'
+    GPT_MODEL = 'gpt-4o-mini'
     TEMPERATURE_RAG = 0.2
     TEMPERATURE_CHAT = 0.5
     MAX_TOKEN = 1024

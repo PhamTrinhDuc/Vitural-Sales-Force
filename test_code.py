@@ -1,5 +1,5 @@
-from configs.config_system import SYSTEM_CONFIG
-from icecream import ic
+# from configs.config_system import SYSTEM_CONFIG
+# from icecream import ic
 
 
 ######## TEST ELASTICSEARCH ########
@@ -90,12 +90,14 @@ from icecream import ic
 # print(response)
 
 ######### TEST CHAT API CALL ########
-# from api.handle_request import handle_request
-# response = handle_request(InputText="đèn nặng lượng mặt trời", 
-#                           UserName="ducpham",
-#                           IdRequest="123")
+# from source.generate.chat_seasion import QuestionHandler
+from api.handle_request import handle_request
 
-# print(response)
+response = handle_request(
+    InputText="đèn nặng lượng mặt trời", 
+    UserName="ducpham",
+    IdRequest="123")
+print(response)
 
 ######### TEST CHATCHIT  ############
 # from langchain_core.prompts import PromptTemplate
@@ -130,7 +132,22 @@ from icecream import ic
 
 
 ######### TEST DATABASE ############
-# from utils.postgres_connecter.postgres_logging import PostgresHandle
+# from utils.postgres_connecter.postgres_logger import PostgresHandle
 # postgres_handle = PostgresHandle()
 # postgres_handle.create_table()
 # postgres_handle.connection.close()
+
+# import time
+# st = time.time()
+# from langchain_openai import ChatOpenAI
+# from langchain_community.callbacks import get_openai_callback
+
+# model = ChatOpenAI(api_key="sk-dTKKIChoB9Odh6JlFCbuaKpJVeojvF-FvhwP9x3aWCT3BlbkFJaeYHlewA30a4pENbXXSCl8qKU1KVuogMStcdmka00A")
+
+# with get_openai_callback() as cb:
+#     response = model.invoke("Hello").content
+# print(response)
+# print(type(cb.total_tokens))
+# print(type(cb.total_cost))
+
+# print(time.time() - st)

@@ -7,7 +7,7 @@ import random
 
 # Hàm reset lại cuộc trò chuyện
 def reset_conversation():
-    return [("", "Chào mừng anh/chị đến với VCC! Em là Bot VCC, luôn ở đây để hỗ trợ và tư vấn mua sắm. Có phải anh chị đang có nhu cầu mua điều hòa phải không? Vậy hãy cho em biết mình cần tìm loại nào và với ngân sách bao nhiêu ạ! Chúc anh/chị một ngày rực rỡ và thành công! 🌈")], []
+    return [("", "Chào mừng anh/chị đến với VCC! Em là Phương Nhi, luôn ở đây để hỗ trợ và tư vấn mua sắm. Có phải anh chị đang có nhu cầu tìm hiểu và mua sắm phải không? Vậy hãy cho em biết mình cần tìm loại nào và với ngân sách bao nhiêu ạ! Chúc anh/chị một ngày rực rỡ và thành công! 🌈")], []
 
 # Hàm tải hình ảnh từ URL
 def load_image(url):
@@ -101,7 +101,7 @@ with gr.Blocks(css="""
 
     # Giao diện chatbot
     chatbot = gr.Chatbot(
-        [("", "Chào mừng anh/chị đến với VCC! Em là Bot VCC, luôn ở đây để hỗ trợ và tư vấn mua sắm. Có phải anh chị đang có nhu cầu mua điều hòa phải không? Vậy hãy cho em biết mình cần tìm loại nào và với ngân sách bao nhiêu ạ! Chúc anh/chị một ngày rực rỡ và thành công! 🌈")],
+        [("", "Chào mừng anh/chị đã tin tưởng mua sắm tại Viettel. Em là Phương Nhi, trợ lý tư vấn bán hàng tại VCC luôn ở đây để hỗ trợ và tư vấn mua sắm. Có phải anh chị đang có nhu cầu tìm hiểu, mua sắm phải không? Vậy hãy cho em biết mình cần tìm sản phẩm nào và với ngân sách bao nhiêu ạ! Chúc anh/chị một ngày rực rỡ và thành công! 🌈")],
         elem_id="chatbot",
         bubble_full_width=False,
         avatar_images=("static/avt_user.png", "static/avt_bot.png"),
