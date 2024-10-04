@@ -53,62 +53,68 @@ def chat_with_history(query: str, history) -> Tuple[str, str]:
             - extract_inventory: trả về True nếu câu hỏi là extract
     """
 
+    results = {
+        "products": [], "terms": [], "content": "",
+        "status": 200, "message": "", "time_processing": "",
+    }
+
     history_conversation = get_history()
-    query_rewrited = rewrite_query(query=query, history=history_conversation)
-    type = decision_search_type(query_rewrited) # sử dụng function calling để gọi các hàm custom.
-    results = {"type": type, "out_text": None, "extract_similarity": False}
+    query_rewriten = rewrite_query(query=query, history=history_conversation)
+    print(query_rewriten)
+    type = decision_search_type(query_rewriten) # sử dụng function calling để gọi các hàm custom.
+    print(type['content'])
 
     PROMPT_HEADER_TEMPLATE = PromptTemplate(
         input_variables=['context', 'question'],
         template=PROMPT_HEADER)
     rag_chain = PROMPT_HEADER_TEMPLATE | ModelLoader().load_rag_model() | StrOutputParser()
 
-    if type == "SIMILARITY": # sản phẩm tương tự
+    if "SIMILARITY" in type['content'] : # sản phẩm tương tự
         product_name = type.split("|")[1].strip()
         engine = SimilarProductSearchEngine()
-        response = engine.invoke(query=query_rewrited, product_name=product_name)
-        results['out_text'] = response
+        response = engine.invoke(query=query_rewriten, product_name=product_name)
+        results['content'] = response
     
-    elif type == "ORDER":
+    elif "ORDER" in type['content']:
         PROMPT_TEMPLATE = PromptTemplate(
             input_variables=['question'],
             template=PROMPT_ORDER
         )
 
         chain = PROMPT_TEMPLATE | ModelLoader().load_rag_model() | StrOutputParser()
-        response = chain.invoke({"question": query_rewrited})
-        results['out_text'] = response
+        response = chain.invoke({"question": query_rewriten})
+        results['content'] = response
 
 
-    elif type == "TEXT": # chroma db search
-        product_id = classify_product(query=query_rewrited)
-
+    elif "TEXT" in type['content']: # chroma db search
+        product_id = classify_product(query=query_rewriten)
+        print(product_id)
         if product_id == -1: # không phân loại được sản phẩm
             template = PromptTemplate(
                 input_variables=['question'],
                 template=PROMPT_CHATCHIT
-            ).format(question=query_rewrited)
+            ).format(question=query_rewriten)
             response = ModelLoader().load_chatchit_model().invoke(template).content
         else:
             db_name = SYSTEM_CONFIG.ID_2_NAME_PRODUCT[product_id]
-            context = Retriever().get_context(query=query_rewrited, product_name=db_name) # thông tin điều hòa liên quan tới câu query
+            context = Retriever().get_context(query=query_rewriten, product_name=db_name) # thông tin điều hòa liên quan tới câu query
             response = rag_chain.invoke({'context': context, 
-                                        'question': query_rewrited})
-        results['out_text'] = response 
+                                        'question': query_rewriten})
+        results['content'] = response 
 
     else: # elastic search
-        demands = classify_intent(query_rewrited)
+        demands = classify_intent(query_rewriten)
         print("= = = = result few short = = = =:", demands)
         response_elastic, products_info = search_db(demands)
         # print(response_elastic)
         response = rag_chain.invoke({'context': response_elastic, 
-                                     'question': query_rewrited})
-        results['out_text'] = response
+                                     'question': query_rewriten})
+        results['content'] = response
     
-    memory.chat_memory.add_user_message(query_rewrited)
-    memory.chat_memory.add_ai_message(results['out_text'])
+    memory.chat_memory.add_user_message(query_rewriten)
+    memory.chat_memory.add_ai_message(results['content'])
     if isinstance(history, list):
-        history.append((query_rewrited, results['out_text']))
+        history.append((query_rewriten, results['content']))
 
     return "", history
 
@@ -135,59 +141,60 @@ def chat_with_history_copy(query: str) -> str:
     }
 
     history_conversation = get_history()
-    query_rewrited = rewrite_query(query=query, history=history_conversation)
-    type = decision_search_type(query_rewrited) # sử dụng function calling để gọi các hàm custom.
-    results = {"type": type, "out_text": None, "extract_similarity": False}
+    query_rewriten = rewrite_query(query=query, history=history_conversation)
+    print(query_rewriten)
+    type = decision_search_type(query_rewriten) # sử dụng function calling để gọi các hàm custom.
+    print(type['content'])
 
     PROMPT_HEADER_TEMPLATE = PromptTemplate(
         input_variables=['context', 'question'],
         template=PROMPT_HEADER)
     rag_chain = PROMPT_HEADER_TEMPLATE | ModelLoader().load_rag_model() | StrOutputParser()
 
-    if type == "SIMILARITY": # sản phẩm tương tự
+    if "SIMILARITY" in type['content'] : # sản phẩm tương tự
         product_name = type.split("|")[1].strip()
         engine = SimilarProductSearchEngine()
-        response = engine.invoke(query=query_rewrited, product_name=product_name)
-        results['out_text'] = response
+        response = engine.invoke(query=query_rewriten, product_name=product_name)
+        results['content'] = response
     
-    elif type == "ORDER":
+    elif "ORDER" in type['content']:
         PROMPT_TEMPLATE = PromptTemplate(
             input_variables=['question'],
             template=PROMPT_ORDER
         )
 
         chain = PROMPT_TEMPLATE | ModelLoader().load_rag_model() | StrOutputParser()
-        response = chain.invoke({"question": query_rewrited})
-        results['out_text'] = response
+        response = chain.invoke({"question": query_rewriten})
+        results['content'] = response
 
 
-    elif type == "TEXT": # chroma db search
-        product_id = classify_product(query=query_rewrited)
-
+    elif "TEXT" in type['content']: # chroma db search
+        product_id = classify_product(query=query_rewriten)
+        print(product_id)
         if product_id == -1: # không phân loại được sản phẩm
             template = PromptTemplate(
                 input_variables=['question'],
                 template=PROMPT_CHATCHIT
-            ).format(question=query_rewrited)
+            ).format(question=query_rewriten)
             response = ModelLoader().load_chatchit_model().invoke(template).content
         else:
             db_name = SYSTEM_CONFIG.ID_2_NAME_PRODUCT[product_id]
-            context = Retriever().get_context(query=query_rewrited, product_name=db_name) # thông tin điều hòa liên quan tới câu query
+            context = Retriever().get_context(query=query_rewriten, product_name=db_name) # thông tin điều hòa liên quan tới câu query
             response = rag_chain.invoke({'context': context, 
-                                        'question': query_rewrited})
-        results['out_text'] = response 
+                                        'question': query_rewriten})
+        results['content'] = response 
 
     else: # elastic search
-        demands = classify_intent(query_rewrited)
+        demands = classify_intent(query_rewriten)
         print("= = = = result few short = = = =:", demands)
         response_elastic, products_info = search_db(demands)
         # print(response_elastic)
         response = rag_chain.invoke({'context': response_elastic, 
-                                     'question': query_rewrited})
-        results['out_text'] = response
+                                     'question': query_rewriten})
+        results['content'] = response
     
-    memory.chat_memory.add_user_message(query_rewrited)
-    memory.chat_memory.add_ai_message(results['out_text'])
+    memory.chat_memory.add_user_message(query_rewriten)
+    memory.chat_memory.add_ai_message(results['content'])
 
 
-    return results['out_text']
+    return results['content']

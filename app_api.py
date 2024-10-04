@@ -10,7 +10,7 @@ async def post(
     InputText: str = Form(None),
     IdRequest: str = Form(...),
     NameBot: str = Form(...),
-    UserName: str = Form(...),
+    UserName: str = Form(None),
     Voice: UploadFile = File(None),
     Image: UploadFile = File(None)
 ):

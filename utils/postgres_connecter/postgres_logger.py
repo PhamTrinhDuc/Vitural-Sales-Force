@@ -1,5 +1,6 @@
 import pandas as pd
 import logging
+from datetime import datetime
 from utils.postgres_connecter.db_connection import connect_to_postgres
 from configs.config_system import SYSTEM_CONFIG
 
@@ -29,6 +30,7 @@ class PostgresHandler:
             id SERIAL PRIMARY KEY,
             user_name VARCHAR(255) NOT NULL,
             session_id VARCHAR(255) NOT NULL,
+            date_request TIMESTAMP,
             total_token INT,
             total_cost FLOAT,
             time_request VARCHAR(255),
@@ -47,17 +49,17 @@ class PostgresHandler:
             logging.error(f"Error create table : {e}")
             self.connection.rollback()
 
-    def insert_data(self, user_name: str, session_id: str, total_token: int, toal_cost: float,
+    def insert_data(self, user_name: str, session_id: str, date_request: str, total_token: int, toal_cost: float,
                     time_request: str, status: str, error_message: str, human_chat: str, bot_chat: str):
         
         insert_query = '''
-        INSERT INTO sales_force.log_chat_sales_force(user_name, session_id, total_token, total_cost, time_request, status, error_message, human_chat, bot_chat)
-        VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO sales_force.log_chat_sales_force(user_name, session_id, date_request, total_token, total_cost, time_request, status, error_message, human_chat, bot_chat)
+        VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         '''
 
         try:
             with self.connection.cursor() as cursor:
-                cursor.execute(insert_query, (user_name, session_id, total_token, toal_cost, time_request, status, error_message, human_chat, bot_chat))
+                cursor.execute(insert_query, (user_name, session_id, date_request, total_token, toal_cost, time_request, status, error_message, human_chat, bot_chat))
                 self.connection.commit()
                 logging.info("Data inserted successfully in PostgreSQL")
         except Exception as e:

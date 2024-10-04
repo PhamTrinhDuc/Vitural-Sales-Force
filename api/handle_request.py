@@ -1,4 +1,5 @@
 import random
+import datetime
 import time
 from typing import Dict, Optional, Any
 from source.generate.chat_seasion import Pipline
@@ -6,7 +7,6 @@ from utils.postgres_connecter.postgres_logger import PostgresHandler
 from configs import SYSTEM_CONFIG
 
 DB_LOGGER = PostgresHandler()
-
 
 def handle_request(
     InputText: str,
@@ -29,8 +29,9 @@ def handle_request(
 
     start_time = time.time()
     results = {
-        "products": [], "terms": [], "content": "", "total_token": 0,
-        "status": 200, "message": "", "time_processing": "",
+        "products": [], "terms": [], "content": "", 
+        "total_token": 0, 'total_cost': 0,
+        "status": 200, "message": "",
     }
     try:
         if InputText not in('first_text', None, 'terms'):
@@ -50,17 +51,16 @@ def handle_request(
         results['status'] = 500
         results['message'] = f'An error occurred while processing your request. ERROR: {str(e)}'
 
-    results['time_processing'] = f"{time.time() - start_time:.2f}s"
-
     DB_LOGGER.insert_data(
         user_name=UserName, 
         session_id=IdRequest, 
+        date_request=datetime.now().strftime("%H:%M:%S %d/%m/%Y"),
         total_token=results['total_token'],
         status=results['status'], 
         error_message=results['message'],
         human_chat=InputText, 
         bot_chat=results['content'],
-        time_request=results['time_processing'],
+        time_request=f"{time.time() - start_time:.2f}s",
         toal_cost=results['cost']
     )
     

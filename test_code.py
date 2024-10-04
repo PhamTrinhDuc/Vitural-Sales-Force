@@ -20,10 +20,10 @@
 #     ic(response)
 
 ######### TEST CHAT GRADIO ########
-# from source.generate.chat import chat_with_history_copy
-# query = "chốt đơn cho tôi điều hòa 10 triệu nhé"
-# response = chat_with_history_copy(query=query)
-# ic(response)
+from source.generate.gradio_chat import chat_with_history_copy
+query = "top 10 sản phẩm điều hòa bán chạy 2023"
+response = chat_with_history_copy(query=query)
+print(response)
 
 
 ######### TEST CRAWLER ########
@@ -33,7 +33,7 @@
 
 ######### TEST ROUTER ########
 # from source.router.router import decision_search_type
-# query = "tôi muốn tìm sản phẩm tương tự điều hòa MDV - inverter 9000 btu"
+# query = "tôi muốn tìm sản phẩm điều hòa MDV - inverter 9000 btu có giá 20 triệu"
 # type = decision_search_type(query=query)
 # print("Type:\n", type)
 
@@ -71,15 +71,14 @@
 
 
 ######### TEST RETRIEVER ########
-from source.retriever.chroma.retriever import Retriever
-retriever = Retriever()
-# response = retriever.get_context(query="KPI xử lý bảo hành điều hòa", 
-#                                  product_name="dieu_hoa")
-response = retriever.get_info_product(
-    id_product="M&EGD000254",
-    data_path='data/data_private/data_csv/cong_tac.csv')
+# from source.retriever.chroma.retriever import Retriever
+# retriever = Retriever()
+# # response = retriever.get_context(query="KPI xử lý bảo hành điều hòa", 
+# #                                  product_name="dieu_hoa")
+# response = retriever.get_info_product(
+#     id_product="M&EGD000254",
+#     data_path='data/data_private/data_csv/cong_tac.csv')
 
-######### TEST FUNCTION CALLING ########
 ######### TEST INGEST DATA ########
 # from source.ingest_data.ingestion import IngestBuilder
 # data = IngestBuilder.load_document_chunked()
@@ -153,3 +152,38 @@ response = retriever.get_info_product(
 # print(type(cb.total_cost))
 
 # print(time.time() - st)
+
+
+##### TEST MARKDOWN #########
+
+# import markdown
+# from markdown.extensions.tables import TableExtension
+
+# def markdown_to_html(markdown_text):
+#     # Tạo đối tượng Markdown với extension hỗ trợ bảng
+#     md = markdown.Markdown(extensions=[TableExtension()])
+    
+#     # Chuyển đổi Markdown sang HTML
+#     html_output = md.convert(markdown_text)
+    
+#     return html_output
+
+# # Ví dụ sử dụng với markdown mới
+# markdown_text = """
+# Đây là bảng so sánh giữa hai sản phẩm điều hòa:
+
+# | Đặc điểm | Điều hòa A | Điều hòa B |
+# |----------|------------|------------|
+# | Công suất | 9000 BTU | 12000 BTU |
+# | Hiệu suất năng lượng | 4.5 sao | 5 sao |
+# | Độ ồn | 30 dB | 28 dB |
+# | Giá | 8.000.000 VND | 10.000.000 VND |
+
+# ## Kết luận
+
+# Như bạn có thể thấy, **Điều hòa B** có công suất cao hơn và hiệu suất năng lượng tốt hơn, 
+# nhưng cũng đắt hơn *Điều hòa A*.
+
+# """
+# html_result = markdown_to_html(markdown_text)
+# print(html_result)

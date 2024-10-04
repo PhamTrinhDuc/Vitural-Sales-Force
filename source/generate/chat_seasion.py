@@ -23,6 +23,18 @@ class Pipline:
         self.USER_HELPER = UserHelper()
 
     def _execute_llm_call(self, llm, prompt, structured_output=None):
+
+        """Executes a call to a language model (LLM) with the given prompt and optional structured output.
+        Args:
+            llm: OpenAI: The language model instance to be called.
+            prompt (str): The input prompt to be sent to the LLM.
+            structured_output (Basemodel): An optional structured output format for the LLM response.
+        Returns:
+            dict: A dictionary containing the following keys:
+            - "content": The content of the LLM response.
+            - "total_token": The total number of tokens used in the LLM call.
+            - "cost": The total cost of the LLM call.
+        """
         with get_openai_callback() as cb:
             if structured_output:
                 llm_with_output = llm.with_structured_output(structured_output)
