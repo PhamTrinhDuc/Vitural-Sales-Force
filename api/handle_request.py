@@ -37,11 +37,11 @@ def handle_request(
         "name": UserName,
     }
     try:
-        if InputText not in("terms", 'first_text', None):
+        if InputText not in("terms", 'first_text', None, ""):
             response = Pipeline().chat_session(InputText=InputText, IdRequest=IdRequest, NameBot=NameBot, Voice=Voice, Image=Image, UserInfor=Users)
             results.update(**response)
             
-        elif InputText == 'first_text' or InputText == None:
+        elif InputText in ('first_text', None, ""):
             results["terms"] = SYSTEM_CONFIG.BUTTON
             results["content"] = random.choice(SYSTEM_CONFIG.MESSAGE)
         else:

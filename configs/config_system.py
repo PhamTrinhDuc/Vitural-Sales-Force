@@ -12,6 +12,7 @@ class LoadConfig:
     # SEVER CONFIG
     IP = "0.0.0.0"
     PORT = 8089
+    LINK_SEVER = "https://allinonemobile.congtrinhviettel.com.vn/static"
 
     # POSTGRES CONFIG
     POSTGRES_HOST = "10.248.243.162"
@@ -19,7 +20,7 @@ class LoadConfig:
     POSTGRES_PASSWORD = "Vcc#2024#"
     POSTGRES_USER = "ai_chatbot_admin"
     POSTGRES_PORT = 5432
-    CONNECTION_TIMEOUT = 6
+    POSTGRE_TIMEOUT = 6
 
     # PARAMETER URL CONFIG
     IMAGE_URL = "http://10.248.243.105:8000/process_image/"

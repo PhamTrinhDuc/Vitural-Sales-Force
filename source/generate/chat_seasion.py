@@ -1,4 +1,3 @@
-import time
 import markdown
 import os
 import pandas as pd
@@ -58,13 +57,14 @@ class Pipeline:
         Returns:
             - results: product information obtained
         """
+        link_header = SYSTEM_CONFIG.LINK_SEVER
         result = []
         for index, row in dataframe.iterrows():
             if any(str(item).lower() in output_from_llm.lower() for item in (row['product_name'], row['product_info_id'])):
                 product = {
                     "product_info_id": row['product_info_id'],
                     "product_name": row['product_name'],
-                    "file_path": row['file_path']
+                    "file_path": os.path.join(link_header + row['file_path'])
                 }
                 result.append(product)
         return result

@@ -1,28 +1,48 @@
 import pandas as pd
 import logging
-from datetime import datetime
-from utils.postgres_connecter.db_connection import connect_to_postgres
+import psycopg2
 from configs.config_system import SYSTEM_CONFIG
 
-class PostgresHandler:
+class PostgreHandler:
     def __init__(self):
         self.host = SYSTEM_CONFIG.POSTGRES_HOST
         self.database_name = SYSTEM_CONFIG.POSTGRES_DB_NAME
         self.password = SYSTEM_CONFIG.POSTGRES_PASSWORD
         self.user = SYSTEM_CONFIG.POSTGRES_USER
         self.port = SYSTEM_CONFIG.POSTGRES_PORT
-        self.TIMEOUT = SYSTEM_CONFIG.CONNECTION_TIMEOUT
-        self.connection, error = connect_to_postgres(
-            host=self.host,
-            database_name=self.database_name,
-            user=self.user,
-            password=self.password,
-            port=self.port,
-            max_timeout=self.TIMEOUT
-        )
-        self.create_table()
+        self.TIMEOUT = SYSTEM_CONFIG.POSTGRE_TIMEOUT
+        # self.create_table()
+        self.connection, error = self.connect_to_postgre()
+
         if self.connection is None:
             logging.error(f"Error: {error.upper()}")
+    
+    def connect_to_postgre(self):
+        try:
+            conn_string = f"''host={self.host} dbname={self.database_name} 
+            user={self.user} password={self.password} port={self.port} connect_timeout={self.max_timeout}"""
+            conn = psycopg2.connect(conn_string)
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            result = cursor.fetchone()
+
+            if result[0] == 1:
+                message = f"Successful connection to PostgreSQL database {self.database_name} !"
+            else:
+                cursor.close()
+                conn.close()
+                message = "Connection failed: Unable to verify connection"
+            return conn, message
+            
+        except psycopg2.errors.OperationalError as e:
+            if "timeout expired" in str(e):
+                return None, f"Error: Connection timeout after {self.max_timeout} seconds"
+            else:
+                return None, f"Connection error: {e}"
+        
+        except Exception as e:
+            return None, f"Unknown error: {e}"
+    
 
     def create_table(self):
         create_table_query = '''
@@ -76,6 +96,6 @@ class PostgresHandler:
         
     
 if __name__ == "__main__":
-    postgres_handle = PostgresHandler()
+    postgres_handle = PostgreHandler()
     postgres_handle.create_table()
     postgres_handle.connection.close()
