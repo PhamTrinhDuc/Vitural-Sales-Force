@@ -22,7 +22,7 @@ def decision_search_type(query: str) -> str:
     return {
         'content': type,
         'total_token': cb.total_tokens,
-        'cost': cb.total_cost
+        'total_cost': cb.total_cost
     }
 
 
@@ -48,5 +48,5 @@ def classify_product(query: str) -> str:
     return {
         'content': product_id,
         'total_token': cb.total_tokens,
-        'cost': cb.total_cost
+        'total_cost': cb.total_cost
     }

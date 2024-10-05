@@ -2,7 +2,8 @@ import time
 import markdown
 import os
 import pandas as pd
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
+from markdown.extensions.tables import TableExtension
 from langchain_core.prompts import PromptTemplate
 from langchain_community.callbacks.manager import get_openai_callback
 from source.retriever.chroma.retriever import Retriever
@@ -11,17 +12,18 @@ from source.retriever.elastic_search import search_db, classify_intent
 from source.similar_product.searcher import SimilarProductSearchEngine
 from source.model.loader import ModelLoader
 from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_CHATCHIT, PROMPT_ORDER
-from utils import GradeReWrite, UserHelper, timing_decorator
+from utils import GradeReWrite, USER_HELPER, timing_decorator
 from configs.config_system import SYSTEM_CONFIG
 
 # Helper functions
 
-class Pipline:
+class Pipeline:
     def __init__(self):
         self.LLM_RAG = ModelLoader().load_rag_model()
         self.LLM_CHAT_CHIT = ModelLoader().load_chatchit_model()
-        self.USER_HELPER = UserHelper()
-
+        self.USER_HELPER = USER_HELPER        
+        self.users = None
+        
     def _execute_llm_call(self, llm, prompt, structured_output=None):
 
         """Executes a call to a language model (LLM) with the given prompt and optional structured output.
@@ -44,10 +46,10 @@ class Pipline:
             return {
                 "content": response.content if hasattr(response, 'content') else response,
                 "total_token": cb.total_tokens,
-                'cost': cb.total_cost
+                'total_cost': cb.total_cost
             }    
 
-    def _process_output(self, output_from_llm: str, dataframe: pd.DataFrame) -> Dict[str, Any]:
+    def _process_output(self, output_from_llm: str, dataframe: pd.DataFrame) -> List[Dict[str, Any]]:
         """
         Get info product in output from llm.
         Args:
@@ -58,22 +60,19 @@ class Pipline:
         """
         result = []
         for index, row in dataframe.iterrows():
-            if any(row['product_name'], row['product_code'], row['lifecare_price']) in output_from_llm:
-                product =  {
-                    "code" : "",
-                    "name" : "",
-                    "link" : ""
-                }
+            if any(str(item).lower() in output_from_llm.lower() for item in (row['product_name'], row['product_info_id'])):
                 product = {
-                    "code": row['product_info_id'],
-                    "name": row['product_name'],
-                    "link": row['file_path']
+                    "product_info_id": row['product_info_id'],
+                    "product_name": row['product_name'],
+                    "file_path": row['file_path']
                 }
                 result.append(product)
         return result
     
-    def _format_to_HTML(self):
-        pass
+    def _format_to_HTML(self, markdown_text: str) -> str:
+        md = markdown.Markdown(extensions=[TableExtension()])
+        html_output = md.convert(markdown_text)
+        return html_output
 
     def _rewrite_query(self, query: str, history: str) -> Dict[str, Any]:
         """
@@ -93,7 +92,7 @@ class Pipline:
                 GradeReWrite
             )
         except Exception:
-            return {"content": query, "total_token": 0, 'cost': 0}
+            return {"content": query, "total_token": 0, 'total_cost': 0}
 
 
     def _handle_similarity_search(self, query: str, product_name: str) -> Dict[str, Any]:
@@ -107,17 +106,16 @@ class Pipline:
         Returns:
             Dict[str, Any]: The search results and token usage.
         """
-        engine = SimilarProductSearchEngine()
-        return self._execute_llm_call(engine, {"query": query, "product_name": product_name})
-
+        engine = SimilarProductSearchEngine(product_find=product_name)
+        response =  self._execute_llm_call(engine,  query)
+        response['content'] = self._format_to_HTML(markdown_text=response['content'])
+        return response
 
     def _handle_order_query(self, query: str) -> Dict[str, Any]:
         """
-        Handle order-related queries.
-
+        Handle order-related queries. 
         Args:
             query (str): The user's query.
-
         Returns:
             str: The response to the order query and token usage.
         """
@@ -140,18 +138,20 @@ class Pipline:
         product_id = result_classify['content']
         
         if product_id == -1:
-            template = PromptTemplate(input_variables=['question'], template=PROMPT_CHATCHIT)
-            response = self._execute_llm_call(self.LLM_CHAT_CHIT, template.format(question=query))
+            template = PromptTemplate(input_variables=['question', 'user_info'], template=PROMPT_CHATCHIT)
+            response = self._execute_llm_call(self.LLM_CHAT_CHIT, template.format(question=query, user_info=self.users))
         else:
             db_name = SYSTEM_CONFIG.ID_2_NAME_PRODUCT[product_id]
             context = Retriever().get_context(query=query, product_name=db_name)
-            prompt = PromptTemplate(input_variables=['context', 'question'], template=PROMPT_HEADER)
-            response = self._execute_llm_call(self.LLM_RAG, prompt.format(context=context, question=query))
+            prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
+            response = self._execute_llm_call(self.LLM_RAG, prompt.format(context=context, question=query, user_info=self.users))
             
-            specified_product_data  = pd.read_csv(os.path.join(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_DIRECTORY, db_name, ".csv"))
-            response['products'] = self._process_output(output_from_llm=response, dataframe=specified_product_data)
+            specified_product_data  = pd.read_csv(os.path.join(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE, db_name + ".csv"))
+            response['products'] = self._process_output(output_from_llm=response['content'], dataframe=specified_product_data)
+        
+        response['content'] = self._format_to_HTML(markdown_text=response['content'])
         response['total_token'] += result_classify['total_token']
-        response['cost'] += result_classify['cost']
+        response['total_cost'] += result_classify['total_cost']
         return response
 
 
@@ -168,9 +168,12 @@ class Pipline:
         """
         demands = classify_intent(query)
         response_elastic, products_info = search_db(demands)
-        prompt = PromptTemplate(input_variables=['context', 'question'], template=PROMPT_HEADER)
-        response = self._execute_llm_call(self.LLM_RAG, prompt.format(context=response_elastic, question=query))
-        response['products'] = self._process_output(output_from_llm=response, dataframe=pd.DataFrame(products_info))
+
+        prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
+        response = self._execute_llm_call(self.LLM_RAG, prompt.format(context=response_elastic, question=query, user_info=self.users))
+        
+        response['content'] = self._format_to_HTML(markdown_text=response['content'])
+        response['products'] = self._process_output(output_from_llm=response['content'], dataframe=pd.DataFrame(products_info))
         return response
 
     # Main function
@@ -178,47 +181,45 @@ class Pipline:
     @timing_decorator
     def chat_session(
         self,
-        input_text: Optional[str],
-        id_request: Optional[str],
-        user_name: Optional[str],
-        name_bot: Optional[str] = None,
-        voice: Optional[Any] = None,
-        image: Optional[Any] = None
-    ) -> Dict[str, Any]:
+        InputText = None,
+        IdRequest = None,
+        NameBot = None,
+        Voice = None,
+        Image =  None,
+        UserInfor = None,
+    ) :
         
         """
         Main function to interact with the user, process the query through the pipeline, and return an answer.
         Args:
-            input_text (Optional[str]): The user's query.
+            InputText (Optional[str]): The user's query.
             id_request (Optional[str]): The session ID for the user's conversation.
-            user_name (Optional[str]): The name of the user.
             name_bot (Optional[str]): The name of the bot.
-            voice (Optional[Any]): Voice data (if applicable).
+            voice (Optional[Any]): Voice data (if applicable
             image (Optional[Any]): Image data (if applicable).
         Returns:
             Dict[str, Any]: A dictionary containing the response and related information.
         """
+        self.users = self.USER_HELPER.get_user_info(UserInfor['phone_number'])
 
         storage_info_output = {
-            "products": [], "terms": [], "content": "", "total_token": 0, 'cost': 0,
+            "products": [], "terms": [], "content": "", "total_token": 0, 'total_cost': 0,
             "status": 200, "message": "",
         }
 
-        if not input_text:
-            return {**storage_info_output, "message": "No input text provided.", "status": 400}
-
         try:
-            history_conversation = self.USER_HELPER.load_conversation(user_name=user_name, id_request=id_request)
-            result_rewrite = self._rewrite_query(query=input_text, history=history_conversation)
+            history_conversation = self.USER_HELPER.load_conversation(phone_number=UserInfor['phone_number'], id_request=IdRequest)
+            result_rewrite = self._rewrite_query(query=InputText, history=history_conversation)
             query_rewritten = result_rewrite['content']
             storage_info_output['total_token'] += result_rewrite['total_token']
-            storage_info_output['cost'] += result_rewrite['cost']
+            storage_info_output['total_cost'] += result_rewrite['total_cost']
 
             result_type = decision_search_type(result_rewrite['content'])
             search_type = result_type['content']
             storage_info_output['total_token'] += result_type['total_token']
-            storage_info_output['cost'] += result_type['cost']
-
+            storage_info_output['total_cost'] += result_type['total_cost']
+            
+            print(search_type)
             if "SIMILARITY" in search_type: 
                 product_name = search_type.split("|")[1].strip()
                 results = self._handle_similarity_search(query_rewritten, product_name)
@@ -232,16 +233,17 @@ class Pipline:
             storage_info_output.update({
                 'content': results['content'],
                 'total_token': storage_info_output['total_token'] + results['total_token'],
-                'cost': storage_info_output['cost'] + results['cost'],
+                'total_cost': storage_info_output['total_cost'] + results['total_cost'],
                 'products': results.get('products', []),
                 'message': "Request processed successfully."
             })
-            self.USER_HELPER.save_conversation(user_name=user_name, query=input_text, id_request=id_request, response=storage_info_output['content'])
-
+            self.USER_HELPER.save_conversation(phone_number=UserInfor['phone_number'], query=InputText, id_request=IdRequest, response=storage_info_output['content'])
+        
         except Exception as e:
-            storage_info_output.update({"status": 500, "message": f"Error processing request: {str(e)}"})
+            storage_info_output.update({"status": 500, "message": f"Error processing request: {e}"})
 
         return storage_info_output
+
 
 if __name__ == "__main__":
     pass

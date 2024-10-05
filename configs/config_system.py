@@ -14,10 +14,10 @@ class LoadConfig:
     PORT = 8089
 
     # POSTGRES CONFIG
-    POSTGRES_HOST = "127.0.0.1"
-    POSTGRES_DB_NAME = "chatbot"
-    POSTGRES_PASSWORD = "duc8504@@"
-    POSTGRES_USER = "postgres"
+    POSTGRES_HOST = "10.248.243.162"
+    POSTGRES_DB_NAME = "ai_services"
+    POSTGRES_PASSWORD = "Vcc#2024#"
+    POSTGRES_USER = "ai_chatbot_admin"
     POSTGRES_PORT = 5432
     CONNECTION_TIMEOUT = 6
 
@@ -34,16 +34,16 @@ class LoadConfig:
     EXPENSIVE_KEYWORDS =  ["giá đắt", "giá cao", "xa xỉ", "sang trọng", "cao cấp", "đắt đỏ", "chất lượng cao", "hàng hiệu", "hàng cao cấp", "thượng hạng", "lớn nhất", "đắt nhất"]
 
     # DIRECTORIES
-    VECTOR_DATABASE_DIRECTORY = 'data/vector_db'
-    ALL_PRODUCT_FILE_CSV_DIRECTORY = 'data/data_private/product_final_300_extract.xlsx'
-    SPECIFIC_PRODUCT_FOLDER_CSV_DIRECTORY = 'data/data_private/data_csv'
-    SPECIFIC_PRODUCT_FOLDER_TXT_DIRECTORY = 'data/data_private/data_text'
-    CSV_FQA_DIRECTORY = 'data/FAQ/Dieu_Hoa/fqa_dieuhoa.xlsx'
-    SIMILAR_PRODUCT_DIRECTORY = 'data/data_private/data_dienmayxanh.csv'
-    CONVERSATION_DIRECTORY = 'conversation_storage'
+    VECTOR_DATABASE_STORAGE = 'data/vector_db'
+    ALL_PRODUCT_FILE_CSV_STORAGE = 'data/data_private/product_final_300_extract.xlsx'
+    SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE = 'data/data_private/data_csv'
+    SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE = 'data/data_private/data_text'
+    SIMILAR_PRODUCT_STORAGE = 'data/data_private/data_dienmayxanh.csv'
+    CONVERSATION_STORAGE = 'security/conv_storage'
+    INFO_USER_STORAGE = 'security/info_user_storage'
 
     # LLM_CONFIG
-    GPT_MODEL = 'gpt-4o-mini'
+    GPT_MODEL = 'gpt-4o-mini-2024-07-18'
     TEMPERATURE_RAG = 0.2
     TEMPERATURE_CHAT = 0.5
     MAX_TOKEN = 1024

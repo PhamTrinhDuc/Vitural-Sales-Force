@@ -4,25 +4,41 @@ from fastapi import FastAPI, UploadFile, Form, File
 from api.handle_request import handle_request
 
 app = FastAPI()
+global numberrequest
 
-@app.post('/chatbot')
+@app.post('/chatbot_proactive')
 async def post(
-    InputText: str = Form(None),
-    IdRequest: str = Form(...),
-    NameBot: str = Form(...),
-    UserName: str = Form(None),
-    Voice: UploadFile = File(None),
-    Image: UploadFile = File(None)
-):
+    idRequest: str = Form(...),
+    nameBot: str = Form(...),
+    phoneNumber: str = Form(...),
+    userName: str = Form(...),
+    inputText: str = Form(None),
+    address: str = Form(None),
+    image: UploadFile = File(None),
+    voice: UploadFile = File(None)
     
-    results = handle_request(
-        InputText=InputText,
-        IdRequest=IdRequest,
-        NameBot=NameBot,
-        UserName=UserName,
-    )
-    print("Results from handle_request: ", results)
+):
+    numberrequest += 1
 
-    return results
+    print("----------------NEW_SESSION--------------")
+    print("NumberRequest", numberrequest)
+    print("User  = ", userName)
+    print("InputText  = ", inputText)
+
+    results = handle_request(
+        InputText=inputText,
+        IdRequest=idRequest,
+        NameBot=nameBot,
+        UserName=userName,
+        Image=image,
+        Voice=voice,
+        PhoneNumber=phoneNumber,
+        Address=address
+    )
+
+    print("----------------HANDLE_REQUEST_OUTPUT--------------")
+    print(results)
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

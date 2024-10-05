@@ -1,6 +1,5 @@
 import os
 import dotenv
-import pandas as pd
 from typing import List, Tuple, Optional
 from langchain_core.documents import Document
 from langchain_community.vectorstores import Chroma
@@ -17,14 +16,14 @@ dotenv.load_dotenv()
 
 class Retriever:
     def __init__(self):
-        os.makedirs(SYSTEM_CONFIG.VECTOR_DATABASE_DIRECTORY, exist_ok=True)
-        os.makedirs(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_DIRECTORY, exist_ok=True)
-        if len(os.listdir(SYSTEM_CONFIG.VECTOR_DATABASE_DIRECTORY)) == 0:
+        os.makedirs(SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE, exist_ok=True)
+        os.makedirs(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE, exist_ok=True)
+        if len(os.listdir(SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE)) < 23:
             self.embedding_all_document()
-        
+
     def embedding_all_document(self,
-                               data_specific_folder_txt_path: Optional[str] = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_DIRECTORY,
-                               db_store_folder_path: Optional[str] = SYSTEM_CONFIG.VECTOR_DATABASE_DIRECTORY,
+                               data_specific_folder_txt_path: Optional[str] = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE,
+                               db_store_folder_path: Optional[str] = SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE,
                                embedding_model: Optional[OpenAIEmbeddings] = ModelLoader().load_embed_openai_model()):
         
         os.makedirs(db_store_folder_path, exist_ok=True)
@@ -39,8 +38,8 @@ class Retriever:
 
     def initialize_database_embedding(self,
                                       product_name: str,
-                                      data_specific_folder_txt_path: Optional[str] = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_DIRECTORY,
-                                      db_store_folder_path: Optional[str] = SYSTEM_CONFIG.VECTOR_DATABASE_DIRECTORY,
+                                      data_specific_folder_txt_path: Optional[str] = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE,
+                                      db_store_folder_path: Optional[str] = SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE,
                                       embedding_model: Optional[OpenAIEmbeddings] = ModelLoader().load_embed_openai_model()) -> Tuple[list, Chroma, int]:
         
         """

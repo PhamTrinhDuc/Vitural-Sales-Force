@@ -5,12 +5,11 @@ from typing import Dict, List, Tuple, Optional
 from elasticsearch import Elasticsearch
 from utils import timing_decorator
 from source.retriever.elastic_search import ElasticHelper
-from logs.logger import set_logging_terminal
 from configs import SYSTEM_CONFIG
 
 
 NUMBER_SIZE_ELAS = SYSTEM_CONFIG.NUM_SIZE_ELAS
-DATAFRAME = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_DIRECTORY)
+DATAFRAME = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE)
 INDEX_NAME = SYSTEM_CONFIG.INDEX_NAME
 MATCH_THRESHOLD = 75
 
@@ -131,7 +130,6 @@ def search_db(demands: Dict)-> Tuple[str, List[Dict], int]:
         match_product, match_score = ElasticHelper().find_closest_match(product_name, list_products)
 
         if match_score < MATCH_THRESHOLD:
-            set_logging_terminal().info(f"Không tìm thấy sản phẩm {product_name}")
             continue
         product = DATAFRAME[DATAFRAME['group_name'] == match_product]['group_product_name'].iloc[0]
     
@@ -155,9 +153,9 @@ def search_db(demands: Dict)-> Tuple[str, List[Dict], int]:
             product_details = hit['_source']
             out_text += format_product_output(i, product_details)
             products_info.append({
-                "code": product_details['product_info_id'],
-                "name": product_details['product_name'],
-                "link": product_details['file_path']
+                "product_info_id": product_details['product_info_id'],
+                "product_name": product_details['product_name'],
+                "file_path": product_details['file_path']
             })
     # print(out_text)
     return out_text, products_info

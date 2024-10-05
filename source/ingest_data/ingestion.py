@@ -8,11 +8,11 @@ from langchain_core.documents import Document
 
 class IngestBuilder:
     def __init__(self):
-        if len(os.listdir(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_DIRECTORY)) == 0:
+        if len(os.listdir(SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE)) < 23:
             self.chunk_all_data()
 
 
-    def chunk_FQA_data(self, xlsx_link: str = SYSTEM_CONFIG.CSV_FQA_DIRECTORY) -> List[Document]:
+    def chunk_FQA_data(self, xlsx_link: str) -> List[Document]:
 
         """
         Hàm này để chuyển đổi file CSV thành file văn bản TXT. 
@@ -33,8 +33,8 @@ class IngestBuilder:
 
 
     def chunk_all_data(self, 
-                       specific_product_folder_csv_path: str = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_DIRECTORY,
-                       specific_product_folder_text_path: str = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_DIRECTORY) -> None:
+                       specific_product_folder_csv_path: str = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE,
+                       specific_product_folder_text_path: str = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE) -> None:
         
         """
         Hàm này để chuyển đổi file CSV thành file văn bản TXT. 
@@ -56,7 +56,7 @@ class IngestBuilder:
                 specification = row['specification']
                 product_info = row['product_info']
                 lifecare_price = row['lifecare_price']
-                s1 = f"Product_name: {product_name} || ID: {product_code} || Price: {lifecare_price}\n"
+                s1 = f"Product_name: {product_name} - ID: {product_code} - Price: {lifecare_price}\n"
                 s2 = f"Specifications:\n {specification}\n"
                 stored_data.append(Document(s1 + s2 + "\n"))
 
@@ -69,4 +69,3 @@ class IngestBuilder:
         with open(specific_product_file_path, 'rb') as f:
             data = pickle.load(f)
             return data
-
