@@ -90,5 +90,3 @@ class UserHelper:
                 history = []
 
             return history
-
-USER_HELPER = UserHelper()

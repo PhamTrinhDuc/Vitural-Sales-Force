@@ -12,7 +12,7 @@ from source.retriever.elastic_search import search_db, classify_intent
 from source.similar_product.searcher import SimilarProductSearchEngine
 from source.model.loader import ModelLoader
 from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_CHATCHIT, PROMPT_ORDER
-from utils import GradeReWrite, USER_HELPER, timing_decorator
+from utils import GradeReWrite, UserHelper, timing_decorator
 from configs.config_system import SYSTEM_CONFIG
 
 # Helper functions
@@ -21,7 +21,7 @@ class Pipeline:
     def __init__(self):
         self.LLM_RAG = ModelLoader().load_rag_model()
         self.LLM_CHAT_CHIT = ModelLoader().load_chatchit_model()
-        self.USER_HELPER = USER_HELPER        
+        self.USER_HELPER =  UserHelper()       
         self.users = None
         
     def _execute_llm_call(self, llm, prompt, structured_output=None):

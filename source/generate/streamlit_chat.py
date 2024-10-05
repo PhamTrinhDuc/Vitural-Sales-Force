@@ -17,7 +17,7 @@ from configs.config_system  import SYSTEM_CONFIG
 from logs.logger import set_logging_terminal
 
 logger_terminal = set_logging_terminal()
-CONVERSATION_PATH = SYSTEM_CONFIG.CONVERSATION_DIRECTORY
+CONVERSATION_PATH = SYSTEM_CONFIG.CONVERSATION_STORAGE
 ASSISTANT_AVT = "static/avt_bot.png"
 USER_AVT = "static/avt_user.png"
 

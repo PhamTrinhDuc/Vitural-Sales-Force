@@ -1,10 +1,11 @@
 import uvicorn
 from fastapi import FastAPI, Form
+from fastapi import FastAPI, File, UploadFile
 from fastapi import FastAPI, UploadFile, Form, File
 from api.handle_request import handle_request
 
 app = FastAPI()
-global numberrequest
+numberrequest = 0
 
 @app.post('/chatbot_proactive')
 async def post(
@@ -16,8 +17,8 @@ async def post(
     address: str = Form(None),
     image: UploadFile = File(None),
     voice: UploadFile = File(None)
-    
 ):
+    global numberrequest
     numberrequest += 1
 
     print("----------------NEW_SESSION--------------")
@@ -39,6 +40,6 @@ async def post(
     print("----------------HANDLE_REQUEST_OUTPUT--------------")
     print(results)
 
+    return results
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+uvicorn.run(app, host="0.0.0.0", port=8000)
