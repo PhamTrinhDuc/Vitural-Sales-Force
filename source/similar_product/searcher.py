@@ -109,7 +109,7 @@ class SimilarProductSearchEngine:
             return specifications_product_similar
         return None
         
-
+    @timing_decorator
     def search(self) -> List[str]:
         """
         1. Tìm 5 sản phẩm gần giống với sản phẩm cần tìm(product_find) trong danh sách sp tương tự(list_product_similar)
@@ -149,8 +149,8 @@ class SimilarProductSearchEngine:
         return similar_product_found
                 
     def format_product_output(self, index: int, product_details: Dict[str, Any]) -> str:
-        return (f"{index + 1}. Sản phẩm: {product_details['product_name']} - Giá tiền: {product_details['lifecare_price']:,.0f} đ*\n"
-                f"  Thông số sản phẩm: {product_details['specification']}\n")
+        return (f"{index + 1}. Sản phẩm: {product_details['product_name']} - Giá tiền: {product_details['lifecare_price']:,.0f} đ*\n")
+                # f"  Thông số sản phẩm: {product_details['specification']}\n")
     
     @timing_decorator
     def invoke(self, query: str) -> str:
@@ -169,8 +169,7 @@ class SimilarProductSearchEngine:
 
         chain = PROMPT_TEMPLATE | self.llm | StrOutputParser()
         similer_product_found = self.search()
-        print(similer_product_found)
-        print("=" * 50)
+
         response = chain.invoke({
             'question': query,
             'context': similer_product_found,
