@@ -13,21 +13,24 @@ from utils import timing_decorator
 
 class SimilarProductSearchEngine:
     def __init__(self, 
-            product_find: str,
-            product_similar_path: Optional[str] = SYSTEM_CONFIG.SIMILAR_PRODUCT_STORAGE,
-            product_path: Optional[str] = SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE):
-        self.product_find = product_find
+                 product_find: str,
+                 user_info: Dict[str, Any],
+                 product_similar_path: Optional[str] = SYSTEM_CONFIG.SIMILAR_PRODUCT_STORAGE,
+                 product_origin_path: Optional[str] = SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE):
+        
         self.model_embed = ModelLoader().load_embed_baai_model()
         self.llm = ModelLoader().load_rag_model()
         self.dataframe_similar = pd.read_csv(product_similar_path) # dataframe chứa sản phẩm tương tự
-        self.dataframe_product = pd.read_excel(product_path) # dataframe chứ sản phẩm chính 
+        self.dataframe_product = pd.read_excel(product_origin_path) # dataframe chứ sản phẩm chính 
         self.list_product_similar = self.dataframe_similar["product_name"].tolist()
-        self.list_product = self.dataframe_product["product_name"].tolist() 
+        self.list_origin_product = self.dataframe_product["product_name"].tolist() 
+        self.product_find = self.find_nearest_product(product_find, self.list_origin_product)
+        self.user_info = user_info
 
 
     def find_nearest_products(self, query_product: str, list_product: List[str], top_k: Optional[int] = 5) -> List:
         """
-        Hàm này dùng để tìm n sản phẩm gần giống nhất với câu query của người dùng trong list_product.
+        Hàm này dùng để tìm top_k sản phẩm gần giống nhất với câu query của người dùng trong list_product.
 
         Args:
             - query_product: sản phầm từ câu query của người dùng
@@ -37,12 +40,29 @@ class SimilarProductSearchEngine:
         Returns:
             - trả về danh sách các cặp (tên sản phẩm, độ match) theo thứ tự giảm dần của độ match
         """
-        matches = process.extract(query_product, list_product, scorer=fuzz.partial_ratio, limit=top_k)
-        # for match in matches:
-        #     print(f"Có phải bạn tìm kiếm sản phẩm {match[0]}")
-        #     print("Độ match:", match[1])
-        return matches
+        if query_product:
+            matches = process.extract(query_product, list_product, scorer=fuzz.partial_ratio, limit=top_k)
+            # for match in matches:
+            #     print(f"Có phải bạn tìm kiếm sản phẩm {match[0]}")
+            #     print("Độ match:", match[1])
+            return matches
+        return []
+    
+    def find_nearest_product(self, query_product: str, list_product: List[str]) -> Union[str, None]:
+        """
+        Hàm này dùng để tìm sản phẩm gần giống nhất với câu query của người dùng trong list_product.
 
+        Args:
+            - query_product: sản phầm từ câu query của người dùng
+            - list_product: list chứa tên các sản phẩm
+
+        Returns:
+            - trả về tên sản phẩm gần giống nhất
+        """
+        match = process.extractOne(query_product, list_product, scorer=fuzz.partial_ratio)
+        if match[1] >= 65:
+            return match[0]
+        return None
     
     def find_nearest_price(self, 
                            price_product_find: float, 
@@ -102,7 +122,9 @@ class SimilarProductSearchEngine:
 
         similar_product_found = []
         matches_product = self.find_nearest_products(self.product_find, self.list_product_similar)
-        matches_product = [(value[0], value[1]) for value in matches_product if value[1] >= 40] # những sản phẩm tương tự với sản phẩm cần tìm.
+        if len(matches_product) == 0:
+            return similar_product_found
+        matches_product = [(value[0], value[1]) for value in matches_product if value[1] >= 65] # những sản phẩm tương tự với sản phẩm cần tìm.
         for idx, (product_match, match_score) in enumerate(matches_product):
             # break
             price_product_find = float(self.dataframe_product.loc[self.dataframe_product['product_name'].str.lower() == self.product_find.lower()]['lifecare_price'].values[0]) # HIÊN ĐANG GẶP LỖI NẾU TRONG FILE KH CÓ SẢN PHẨM 'product_find'
@@ -141,16 +163,20 @@ class SimilarProductSearchEngine:
             - response: câu trả lời cho người dùng
         """
         PROMPT_TEMPLATE = PromptTemplate(
-            input_variables=['question', 'context'],
+            input_variables=['question', 'context', 'user_info'],
             template=PROMPT_SIMILAR_PRODUCT
         )
 
         chain = PROMPT_TEMPLATE | self.llm | StrOutputParser()
         similer_product_found = self.search()
+        print(similer_product_found)
+        print("=" * 50)
         response = chain.invoke({
             'question': query,
-            'context': similer_product_found
+            'context': similer_product_found,
+            'user_info': self.user_info['name']
         })
+        print(self.user_info)
         return response
 
 if __name__ == "__main__":

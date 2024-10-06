@@ -20,10 +20,10 @@
 #     ic(response)
 
 ######### TEST CHAT GRADIO ########
-from source.generate.gradio_chat import chat_with_history_copy
-query = "top 10 sản phẩm điều hòa bán chạy 2023"
-response = chat_with_history_copy(query=query)
-print(response)
+# from source.generate.gradio_chat import chat_with_history_copy
+# query = "top 10 sản phẩm điều hòa bán chạy 2023"
+# response = chat_with_history_copy(query=query)
+# print(response)
 
 
 ######### TEST CRAWLER ########
@@ -91,13 +91,20 @@ print(response)
 # print(response)
 
 ######### TEST CHAT API CALL ########
-# from source.generate.chat_seasion import QuestionHandler
-# from api.handle_request import handle_request
+from source.generate.chat_seasion import Pipeline 
+from api.handle_request import handle_request
 
-# response = handle_request(
-#     InputText="đèn nặng lượng mặt trời", 
-#     UserName="ducpham",
-#     IdRequest="123")
+response = handle_request(
+    InputText="có sản phẩm nào tương tự điều hòa MDV - inverter 9000 btu không", 
+    UserName="Đức",
+    IdRequest="123",
+    PhoneNumber='0123456789',
+    Address='Hà Nội')
+print(response['content'])
+
+# from utils.user_helper import UserHelper
+# UserHelper().save_conversation(phone_number="0123456789", id_request="123", query="gmsdgsdm,m,g", response="sdmn")
+# response = UserHelper().load_conversation(conv_user="0123456789", id_request="123")
 # print(response)
 
 ######### TEST CHATCHIT  ############

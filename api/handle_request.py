@@ -6,14 +6,14 @@ from configs import SYSTEM_CONFIG
 
 
 def handle_request(
-    InputText: None,
-    IdRequest: None,
-    NameBot: None,
-    UserName: None,
-    Image: None,
-    Voice: None,
-    PhoneNumber: None,
-    Address: None,):
+    InputText = None,
+    IdRequest = None,
+    NameBot = None,
+    UserName = None,
+    Image = None,
+    Voice = None,
+    PhoneNumber = None,
+    Address = None,):
     """
 
     Hàm chính để tương tác với người dùng, dựa vào query, user_name, seasion_id của người dùng, đưa qua pipeline và trả về câu trả lời.
