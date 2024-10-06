@@ -62,7 +62,7 @@ class UserHelper:
         user_specific_conversation = os.path.join(self.CONVERSATION_PATH, phone_number, conversation_key)
         
         # mở file đã lưu lịch sử trò chuyện
-        if os.path.getsize(user_specific_conversation) > 0:
+        if os.path.exists(user_specific_conversation) and os.path.getsize(user_specific_conversation) > 0:
             with open(user_specific_conversation, mode='r', encoding='utf-8') as f:
                 conversation = json.load(f)
         else:
@@ -93,8 +93,7 @@ class UserHelper:
             conversation_key = f"{id_request}.json"
             os.makedirs(os.path.join(self.CONVERSATION_PATH, conv_user), exist_ok=True)
             user_specific_conversation = os.path.join(self.CONVERSATION_PATH, conv_user, conversation_key)
-            
-            if os.path.getsize(user_specific_conversation) > 0:
+            if os.path.exists(user_specific_conversation) and os.path.getsize(user_specific_conversation) > 0:
                 try:
                     with open(user_specific_conversation, 'r') as f:
                         conversation = json.load(f)

@@ -4,9 +4,9 @@ langchain-community==0.2.12
 langchain-openai==0.1.20
 langchain-core==0.2.32
 # langchain-cohere==0.1.8
-langchainhub==0.1.14
-langchain-experimental==0.0.64
-langsmith==0.1.93
+# langchainhub==0.1.14
+# langchain-experimental==0.0.64
+# langsmith==0.1.130
 rank-bm25==0.2.2
 chromadb==0.5.5
 fuzzywuzzy==0.18.0

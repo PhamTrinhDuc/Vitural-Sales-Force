@@ -232,7 +232,7 @@ class Pipeline:
             # print("HISTORY: ", history_conversation)
             result_rewrite = self._rewrite_query(query=InputText, history=history_conversation)
             query_rewritten = result_rewrite['content']
-            print(query_rewritten)
+            print("QUERY REWRITE:", query_rewritten)
             storage_info_output['total_token'] += result_rewrite['total_token']
             storage_info_output['total_cost'] += result_rewrite['total_cost']
 
@@ -241,7 +241,7 @@ class Pipeline:
             storage_info_output['total_token'] += result_type['total_token']
             storage_info_output['total_cost'] += result_type['total_cost']
             
-            print(search_type)
+            print("TYPE SEARCH:", search_type)
             if "SIMILARITY" in search_type: 
                 product_name = search_type.split("|")[1].strip()
                 results = self._handle_similarity_search(query_rewritten, product_name, self.user_info)

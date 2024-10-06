@@ -95,7 +95,7 @@ from source.generate.chat_seasion import Pipeline
 from api.handle_request import handle_request
 
 response = handle_request(
-    InputText="có sản phẩm nào tương tự điều hòa MDV - inverter 9000 btu không", 
+    InputText="điều hòa giá rẻ nhất", 
     UserName="Đức",
     IdRequest="123",
     PhoneNumber='0123456789',
