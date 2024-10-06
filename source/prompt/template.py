@@ -136,7 +136,7 @@ HƯỚNG DẪN CHI TIẾT:
                     Q: chốt đơn cho tôi điều hòa MDV 9000 BTU
                     A: Em xin chốt đơn cho anh/chị với sản phẩm điều hòa MDV 9000 BTU 1 chiều Inverter giá 6,000,000 đồng. anh chị cho em hỏi anh chị muốn mua mấy cái.
                     Q: 5 cái MDV 9000 BTU
-                    => rewrite: chốt đơn cho anh 5 cái điều hòa MDV 9000 BTU 1 chiều Inverter giá 6,000,000 
+                => rewrite: chốt đơn cho anh 5 cái điều hòa MDV 9000 BTU 1 chiều Inverter giá 6,000,000 
 
 Lịch sử cuộc trò chuyện:
 {chat_history}
