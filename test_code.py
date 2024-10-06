@@ -95,7 +95,7 @@ from source.generate.chat_seasion import Pipeline
 from api.handle_request import handle_request
 
 response = handle_request(
-    InputText="điều hòa giá rẻ nhất", 
+    InputText="giao hàng có lâu không ?", 
     UserName="Đức",
     IdRequest="123",
     PhoneNumber='0123456789',
