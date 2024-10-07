@@ -18,7 +18,7 @@ class Retriever:
     def __init__(self):
         os.makedirs(SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE, exist_ok=True)
         os.makedirs(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE, exist_ok=True)
-        if len(os.listdir(SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE)) == 0:
+        if len(os.listdir(SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE)) < 23:
             self.embedding_all_document()
 
     def embedding_all_document(self,

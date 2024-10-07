@@ -8,8 +8,14 @@ from langchain_core.documents import Document
 
 class IngestBuilder:
     def __init__(self):
-        if len(os.listdir(SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE)) < 23:
+        self._process_data(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE)
+        if len(os.listdir(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE)) < 23:
             self.chunk_all_data()
+
+    def _process_data(self, xlsx_link: str) -> None:
+        df = pd.read_excel(xlsx_link)
+        df['product_info_id'] = df['product_info_id'].apply(lambda x : int(str(x).replace(".", "")))
+        df.to_excel(xlsx_link, index=False)
 
 
     def chunk_FQA_data(self, xlsx_link: str) -> List[Document]:
@@ -52,11 +58,10 @@ class IngestBuilder:
             stored_data = []
             for index, row in dataframes.iterrows():
                 product_name = row['product_name'] 
-                product_code = row['product_code'] 
+                product_info_id = row['product_info_id'] 
                 specification = row['specification']
-                product_info = row['product_info']
                 lifecare_price = row['lifecare_price']
-                s1 = f"Product_name: {product_name} - ID: {product_code} - Price: {lifecare_price}\n"
+                s1 = f"Product_name: {product_name} - ID: {product_info_id} - Price: {lifecare_price}\n"
                 s2 = f"Specifications:\n {specification}\n"
                 stored_data.append(Document(s1 + s2 + "\n"))
 

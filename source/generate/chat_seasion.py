@@ -13,7 +13,7 @@ from source.retriever.elastic_search import search_db, classify_intent
 from source.similar_product.searcher import SimilarProductSearchEngine
 from source.model.loader import ModelLoader
 from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_CHATCHIT, PROMPT_ORDER
-from utils import GradeReWrite, UserHelper, timing_decorator
+from utils import GradeReWrite, UserHelper, timing_decorator, PostgreHandler
 from configs.config_system import SYSTEM_CONFIG
 
 # Helper functions
@@ -33,15 +33,18 @@ class HelperPiline:
         """
         link_header = SYSTEM_CONFIG.LINK_SEVER
         result = []
-        for index, row in dataframe.iterrows():
-            if any(str(item).lower() in output_from_llm.lower() for item in (row['product_name'], row['product_info_id'])):
-                product = {
-                    "product_id": int(str(row['product_info_id']).replace(',', '')), # không ổn
-                    "product_name": row['product_name'],
-                    "link_image": link_header + row['file_path']
-                }
-                result.append(product)
-        return result
+        try: 
+            for index, row in dataframe.iterrows():
+                if any(str(item).lower() in output_from_llm.lower() for item in (row['product_name'], row['product_info_id'])):
+                    product = {
+                        "product_id": row['product_info_id'],
+                        "link_image": link_header + row['file_path']
+                    }
+                    result.append(product)
+            return result
+        except Exception as e:
+            logging.error("PRODUCT SEEKING ERROR: " + str(e))
+            return result
     
     def _format_to_HTML(self, markdown_text: str) -> str:
         """Converts a given markdown text from output llm to HTML format.
@@ -62,27 +65,29 @@ class HelperPiline:
         Returns:
             str: The modified output string with an added short link if a quantity is found, otherwise returns the original output string.
         """
-        if len(product_info) == 0: # nếu không tìm thấy sản phẩm
+        try:
+            if len(product_info) == 0: # nếu không tìm thấy sản phẩm
+                return output_from_llm
+            
+            pattern = r'<li><strong>số lượng:</strong>\s*(\d+)</li>'
+            match = re.search(pattern, output_from_llm.lower())
+            quantity = match.group(1) if match else None
+            print(quantity)
+            if quantity and product_info['product_id']: # nếu tìm thấy số lượng
+                short_link = create_short_link(product_id=product_info['product_id'], quantity=quantity)
+                return f"""{output_from_llm} \n <hr /> \n <p>Nếu thông tin đã đúng vui lòng ấn <a href={short_link['shortLink']} style="color: blue;">Xác nhận</a> để qua trang đặt hàng giúp em nhé. 😊</p>"""
+            return output_from_llm
+        except Exception as e:
+            logging.error("ADD SHORT LINK ERROR: " + str(e))
             return output_from_llm
         
-        pattern = r'<li><strong>Số lượng:</strong>\s*(\d+)</li>'
-        match = re.search(pattern, output_from_llm)
-        quantity = match.group(1) if match else None
-        print(quantity)
-        if quantity: # nếu tìm thấy số lượng
-            short_link = create_short_link(product_id=product_info['product_id'], quantity=quantity)
-            if short_link:
-                return f"""{output_from_llm} \n <hr /> \n <p>Nếu thông tin đã đúng vui lòng ấn <a href={short_link['shortLink']} style="color: blue;">Xác nhận</a> để qua trang đặt hàng giúp em nhé. 😊</p>"""
-            else:
-                return output_from_llm
-
-
 class Pipeline:
     def __init__(self):
         self.LLM_RAG = ModelLoader().load_rag_model()
         self.LLM_CHAT_CHIT = ModelLoader().load_chatchit_model()
         self.USER_HELPER =  UserHelper()  
-        self.PIPELINE_HELPER = HelperPiline()     
+        self.PIPELINE_HELPER = HelperPiline()  
+        # self.DB_LOGGER = PostgreHandler()   
         self.user_info = None
         
     def _execute_llm_call(self, llm, prompt, structured_output=None):
@@ -183,6 +188,7 @@ class Pipeline:
             response = {"content": "", "total_token": 0, 'total_cost': 0}
             logging.error("ORDER QUERY ERROR: " + str(e))
         return response 
+    
 
     def _handle_text_query(self, query: str) -> Dict[str, Any]:
         """
@@ -203,6 +209,7 @@ class Pipeline:
                 response = self._execute_llm_call(self.LLM_CHAT_CHIT, template.format(question=query, user_info=self.user_info))
             else:
                 db_name = SYSTEM_CONFIG.ID_2_NAME_PRODUCT[product_id]
+                print("DB NAME: ", db_name)
                 context = Retriever().get_context(query=query, product_name=db_name)
                 prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
                 response = self._execute_llm_call(self.LLM_RAG, prompt.format(context=context, question=query, user_info=self.user_info))
@@ -288,6 +295,7 @@ class Pipeline:
 
             result_type = decision_search_type(result_rewriten['content'])
             search_type = result_type['content']
+            print(search_type)
             storage_info_output['total_token'] += result_type['total_token']
             storage_info_output['total_cost'] += result_type['total_cost']
             
@@ -314,6 +322,16 @@ class Pipeline:
         except Exception as e:
             storage_info_output.update({"status": 500, "message": f"Error processing request: {e}"})
             logging.error("CHAT SESSION ERROR: " + str(e))
+        
+        # self.DB_LOGGER.save_log(
+        #     phone_number=UserInfor['phone_number'],
+        #     id_request=IdRequest,
+        #     query=InputText,
+        #     response=storage_info_output['content'],
+        #     status=storage_info_output['status'],
+        #     time_processing=storage_info_output['total_token'],
+        #     cost=storage_info_output['total_cost']
+        # )
         return storage_info_output
 
 if __name__ == "__main__":
