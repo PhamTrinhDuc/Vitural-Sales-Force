@@ -162,6 +162,6 @@ def search_db(demands: Dict)-> Tuple[str, List[Dict], int]:
 
 
 def format_product_output(index: int, product_details: Dict) -> str:
-    return (f"\n{index + 1}. *{product_details['product_name']} - Mã: {product_details['product_info_id']}\n"
+    return (f"\n{index + 1}. *{product_details['product_name']} - ID: {product_details['product_info_id']}\n"
             f"  Thông số sản phẩm: {product_details['specification']}\n"
             f"  Giá tiền: {product_details['lifecare_price']:,.0f} đ*\n")

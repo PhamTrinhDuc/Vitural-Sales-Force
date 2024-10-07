@@ -75,7 +75,7 @@ class HelperPiline:
             print(quantity)
             if quantity and product_info['product_id']: # nếu tìm thấy số lượng
                 short_link = create_short_link(product_id=product_info['product_id'], quantity=quantity)
-                return f"""{output_from_llm} \n <hr /> \n <p>Nếu thông tin đã đúng vui lòng ấn <a href={short_link['shortLink']} style="color: blue;">Xác nhận</a> để qua trang đặt hàng giúp em nhé. 😊</p>"""
+                return f"""{output_from_llm} <a href={short_link['shortLink']} style="color: blue;">Xác nhận</a>"""
             return output_from_llm
         except Exception as e:
             logging.error("ADD SHORT LINK ERROR: " + str(e))

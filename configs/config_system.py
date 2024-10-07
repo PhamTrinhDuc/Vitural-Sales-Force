@@ -57,7 +57,9 @@ class LoadConfig:
     TOP_K_PRODUCT = 3
     TOP_K_QUESTION = 3
     TOP_P = 0.9
-
+    
+    # CONFIG PRODUCT
+    NUM_PRODUCT = 23
     ID_2_NAME_PRODUCT = {
         1: "ban_la",
         2: "bep_tu",

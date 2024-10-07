@@ -9,7 +9,7 @@ from langchain_core.documents import Document
 class IngestBuilder:
     def __init__(self):
         self._process_data(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE)
-        if len(os.listdir(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE)) < 23:
+        if len(os.listdir(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE)) < SYSTEM_CONFIG.NUM_PRODUCT:
             self.chunk_all_data()
 
     def _process_data(self, xlsx_link: str) -> None:

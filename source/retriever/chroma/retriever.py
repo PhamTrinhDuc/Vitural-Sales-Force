@@ -18,7 +18,7 @@ class Retriever:
     def __init__(self):
         os.makedirs(SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE, exist_ok=True)
         os.makedirs(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE, exist_ok=True)
-        if len(os.listdir(SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE)) < 23:
+        if len(os.listdir(SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE)) < SYSTEM_CONFIG.NUM_PRODUCT:
             self.embedding_all_document()
 
     def embedding_all_document(self,
@@ -26,13 +26,12 @@ class Retriever:
                                db_store_folder_path: Optional[str] = SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE,
                                embedding_model: Optional[OpenAIEmbeddings] = ModelLoader().load_embed_openai_model()):
         
-        os.makedirs(db_store_folder_path, exist_ok=True)
         for file_name in os.listdir(data_specific_folder_txt_path):
             product_name = file_name.split(".")[0]
             file_path = os.path.join(data_specific_folder_txt_path, product_name + ".pkl")
             db_path = os.path.join(db_store_folder_path, product_name)
             data_chunked = IngestBuilder().load_document_chunked(file_path)
-            Chroma.from_documents(documents=data_chunked, 
+            db = Chroma.from_documents(documents=data_chunked, 
                                   embedding=embedding_model,
                                   persist_directory=db_path)
 
