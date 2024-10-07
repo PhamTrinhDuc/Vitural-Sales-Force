@@ -1,9 +1,9 @@
 import uvicorn
-from typing import Union
+from fastapi import FastAPI, Form
 from fastapi import FastAPI, File, UploadFile
 from fastapi import FastAPI, UploadFile, Form, File
 from api.handle_request import handle_request
-
+from configs import SYSTEM_CONFIG
 app = FastAPI()
 numberrequest = 0
 
@@ -15,8 +15,9 @@ async def post(
     userName: str = Form(...),
     inputText: str = Form(None),
     address: str = Form(None),
-    image: Union[UploadFile, str, None] = File(default=None),
-    voice: Union[UploadFile, str, None] = File(default=None)
+    image: UploadFile = File(None),
+    voice: UploadFile = File(None)
+    
 ):
     global numberrequest
     numberrequest += 1
@@ -24,10 +25,8 @@ async def post(
     print("----------------NEW_SESSION--------------")
     print("NumberRequest", numberrequest)
     print("User  = ", userName)
+    print("PhoneNumber  = ", phoneNumber)
     print("InputText  = ", inputText)
-
-    image = None if isinstance(image, str) and image == "" else image
-    voice = None if isinstance(voice, str) and voice == "" else voice
 
     results = handle_request(
         InputText=inputText,
@@ -45,4 +44,5 @@ async def post(
 
     return results
 
-uvicorn.run(app, host="0.0.0.0", port=8000)
+uvicorn.run(app, host="0.0.0.0", port=SYSTEM_CONFIG.PORT)
+# uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -95,11 +95,14 @@ from source.generate.chat_seasion import Pipeline
 from api.handle_request import handle_request
 
 response = handle_request(
-    InputText="giao hàng có lâu không ?", 
-    UserName="Đức",
+    InputText="chốt cho tôi cái này nhé", 
+    UserName="Văn Thiện",
     IdRequest="123",
-    PhoneNumber='0123456789',
-    Address='Hà Nội')
+    PhoneNumber='030983479',
+    Address='Hà Nội',
+    NameBot=None,
+    Image=None,
+    Voice=None)
 print(response['content'])
 
 # from utils.user_helper import UserHelper
@@ -161,36 +164,14 @@ print(response['content'])
 # print(time.time() - st)
 
 
-##### TEST MARKDOWN #########
+############# TEST REWRITE ###############
+# from utils.schemas import GradeReWrite
+# from configs.config_system import SYSTEM_CONFIG
+# from source.prompt.template import PROMPT_HISTORY
+# from source.model.loader import ModelLoader
 
-# import markdown
-# from markdown.extensions.tables import TableExtension
 
-# def markdown_to_html(markdown_text):
-#     # Tạo đối tượng Markdown với extension hỗ trợ bảng
-#     md = markdown.Markdown(extensions=[TableExtension()])
-    
-#     # Chuyển đổi Markdown sang HTML
-#     html_output = md.convert(markdown_text)
-    
-#     return html_output
-
-# # Ví dụ sử dụng với markdown mới
-# markdown_text = """
-# Đây là bảng so sánh giữa hai sản phẩm điều hòa:
-
-# | Đặc điểm | Điều hòa A | Điều hòa B |
-# |----------|------------|------------|
-# | Công suất | 9000 BTU | 12000 BTU |
-# | Hiệu suất năng lượng | 4.5 sao | 5 sao |
-# | Độ ồn | 30 dB | 28 dB |
-# | Giá | 8.000.000 VND | 10.000.000 VND |
-
-# ## Kết luận
-
-# Như bạn có thể thấy, **Điều hòa B** có công suất cao hơn và hiệu suất năng lượng tốt hơn, 
-# nhưng cũng đắt hơn *Điều hòa A*.
-
-# """
-# html_result = markdown_to_html(markdown_text)
-# print(html_result)
+# llm = ModelLoader().load_rag_model().with_structured_output(GradeReWrite)
+# response = llm.invoke(PROMPT_HISTORY.format(question = "chốt cho anh 3 cái",
+#                                             chat_history = "Em xin giới thiệu cho anh chị mẫu điều hòa MDV 900BTU có giá 10 triệu")).base
+# print(response)

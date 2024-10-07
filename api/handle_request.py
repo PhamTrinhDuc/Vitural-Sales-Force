@@ -1,19 +1,19 @@
 import random
 import time
-from typing import Dict, Optional
+from typing import Dict, Any
 from source.generate.chat_seasion import Pipeline
 from configs import SYSTEM_CONFIG
 
 
 def handle_request(
-    InputText = None,
-    IdRequest = None,
-    NameBot = None,
-    UserName = None,
-    Image = None,
-    Voice = None,
-    PhoneNumber = None,
-    Address = None,):
+    InputText: None,
+    IdRequest: None,
+    NameBot: None,
+    UserName: None,
+    Image: None,
+    Voice: None,
+    PhoneNumber: None,
+    Address: None,) -> Dict[str, Any]:
     """
 
     Hàm chính để tương tác với người dùng, dựa vào query, user_name, seasion_id của người dùng, đưa qua pipeline và trả về câu trả lời.
@@ -31,17 +31,17 @@ def handle_request(
         "products": [], "terms": [], "content": "",
         "status": 200, "message": "", "time_processing": "",
     }
-    Users = {
+    user_info = {
         "phone_number": PhoneNumber,
         "address": Address,
         "name": UserName,
     }
     try:
-        if InputText not in("terms", 'first_text', None, ""):
-            response = Pipeline().chat_session(InputText=InputText, IdRequest=IdRequest, NameBot=NameBot, Voice=Voice, Image=Image, UserInfor=Users)
+        if InputText not in("terms", 'first_text', None):
+            response = Pipeline().chat_session(InputText=InputText, IdRequest=IdRequest, NameBot=NameBot, Voice=Voice, Image=Image, UserInfor=user_info)
             results.update(**response)
             
-        elif InputText in ('first_text', None, ""):
+        elif InputText == 'first_text' or InputText == None:
             results["terms"] = SYSTEM_CONFIG.BUTTON
             results["content"] = random.choice(SYSTEM_CONFIG.MESSAGE)
         else:
