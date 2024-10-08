@@ -22,6 +22,14 @@ class LoadConfig:
     POSTGRES_PORT = 5432
     POSTGRE_TIMEOUT = 6
 
+    # POSTGRES CONFIG
+    # POSTGRES_HOST = "127.0.0.1"
+    # POSTGRES_DB_NAME = "chatbot"
+    # POSTGRES_PASSWORD = "duc8504@@"
+    # POSTGRES_USER = "postgres"
+    # POSTGRES_PORT = 5432
+    # POSTGRE_TIMEOUT = 6
+
     # PARAMETER URL CONFIG
     IMAGE_URL = "http://10.248.243.105:8000/process_image/"
     VOICE_URL = "http://10.248.243.105:8005/voice"

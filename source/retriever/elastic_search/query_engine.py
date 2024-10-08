@@ -117,7 +117,7 @@ def search_db(demands: Dict)-> Tuple[str, List[Dict], int]:
     Returns:
         - trả về câu trả lời, list chứa thông tin sản phẩm, và số lượng sản phẩm tìm thấy
     """
-
+    print(demands)
     client = ElasticHelper().init_elastic(DATAFRAME, INDEX_NAME)
     list_products = DATAFRAME['group_name'].unique()
     product_names = demands['object']

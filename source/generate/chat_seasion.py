@@ -38,6 +38,7 @@ class HelperPiline:
                 if any(str(item).lower() in output_from_llm.lower() for item in (row['product_name'], row['product_info_id'])):
                     product = {
                         "product_id": row['product_info_id'],
+                        "product_name": row['product_name'],
                         "link_image": link_header + row['file_path']
                     }
                     result.append(product)

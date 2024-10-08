@@ -10,7 +10,7 @@ class PostgreHandler:
         self.password = SYSTEM_CONFIG.POSTGRES_PASSWORD
         self.user = SYSTEM_CONFIG.POSTGRES_USER
         self.port = SYSTEM_CONFIG.POSTGRES_PORT
-        self.TIMEOUT = SYSTEM_CONFIG.POSTGRE_TIMEOUT
+        self.time_out = SYSTEM_CONFIG.POSTGRE_TIMEOUT
         # self.create_table()
         self.connection, error = self.connect_to_postgre()
 
@@ -19,8 +19,7 @@ class PostgreHandler:
     
     def connect_to_postgre(self):
         try:
-            conn_string = f'''host={self.host} dbname={self.database_name} 
-            user={self.user} password={self.password} port={self.port} connect_timeout={self.max_timeout}'''
+            conn_string = f"host={self.host} dbname={self.database_name} user={self.user} password={self.password} port={self.port} connect_timeout={self.time_out}"
             conn = psycopg2.connect(conn_string)
             cursor = conn.cursor()
             cursor.execute("SELECT 1")
@@ -36,7 +35,7 @@ class PostgreHandler:
             
         except psycopg2.errors.OperationalError as e:
             if "timeout expired" in str(e):
-                return None, f"Error: Connection timeout after {self.max_timeout} seconds"
+                return None, f"Error: Connection timeout after {self.time_out} seconds"
             else:
                 return None, f"Connection error: {e}"
         

@@ -47,10 +47,6 @@ PROMPT_HEADER = """
             Điều hòa MDV 12000BTU có giá 12,000,000 đồng
         "
         Khi khách hàng hỏi từ 2 sản phẩm trở lên thì hãy trả lời : "Hiện tại em chỉ có thể tư vấn cho anh/chị rõ ràng các thông tin của 1 sản phẩm để anh/chị có thể đánh giá một cách tổng quan nhất và đưa ra sự lựa chọn đúng đắn nhất. Mong anh/chị hãy hỏi em thứ tự từng sản phẩm để em có thể tư vấn một cách cụ thể nhất".
-        Note:   
-            - Trong quá trình tư vấn tìm hiểu nhu cầu về các thông tin sản phẩm của khách hàng sử dụng kiến thức về các sản phẩm tư vấn cho khách hàng sản phẩm phù hợp với nhu cầu.
-            - Thông tin tư vấn phải đúng theo tài liệu cung cấp không được bịa ra thông tin sản phẩm.
-            - Trước những câu trả lời thường có dạ thưa, để em nói cho anh/chị nghe nhé, hihi, em rất trân trọng sự quan tâm của anh/chị đến vấn đề này, Đầu tiên, cảm ơn anh/chị đã đưa ra câu hỏi, ...
   
     4: Giải đáp Thắc mắc:
         Trả lời mọi câu hỏi một cách chi tiết và kiên nhẫn.
@@ -60,7 +56,7 @@ PROMPT_HEADER = """
         Kết thúc câu trả lời hãy nói cảm ơn khách hàng và nếu khách hàng có thắc mắc thì hãy liên hệ Hotline: 18009377 để được hỗ trợ thêm.
 ##NOTE:
     Khi đưa ra câu trả lời ngắn gọn, lịch sự, tường minh không rườm rà.
-    Hãy trả ra tên của sản phẩnm và ID giống như phần ngữ cảnh được cung cấp, không được loại bỏ thông tin nào trong tên sản phẩm.
+    Hãy trả ra tên của sản phẩm và ID giống như phần ngữ cảnh được cung cấp, không được loại bỏ thông tin nào trong tên sản phẩm.
 
 ##QUESTION USER: {question}
 
@@ -68,8 +64,9 @@ PROMPT_HEADER = """
 {context}
 
 ##OUTPUT FORMAT:
-    Trả ra câu trả lời định dạng mardown và tổ chức câu trúc 1 cách hợp lý và dễ nhìn. 
-    [Sản phẩm 1, thông số, giá...]
+    Trả ra câu trả lời định dạng mardown và tổ chức câu trúc 1 cách hợp lý và dễ nhìn.
+    Nếu bạn đưa ra 2 sản phẩm trở lên thì chỉ trả ra tên, giá và 1-2 thông số nổi bật của sản phẩm.
+    [Sản phẩm 1, giá, thông số ...]
     [đưa ra lí do ngắn gọn nên chọn sản phẩm]
     VD: điều hòa ..., giá ... 
         Em gợi ý sản phẩm này vì ...
@@ -217,8 +214,8 @@ PROMPT_CLF_PRODUCT = """
 PROMPT_ROUTER = """
     Bạn là một chuyên gia trong lĩnh vực phân loại công việc khéo léo. Nhiệm vụ của bạn là quyết định xem truy vấn của người dùng nên được xử lý bằng câu truy vấn ELS hay đơn giản là truy vấn từ TEXT, còn nêu hỏi về sản phẩm tương tự thì truy vấn SIMYLARITY hay việc chốt đơn thì vào hàm ORDER. Dưới đây là hướng dẫn chi tiết:
     1. Nếu khách hàng đưa ra những câu hỏi nội dung liên quan đến số lượng, giá cả, công suất, dung tích, khối lượng thì trả về truy vấn "ELS".
-    2. Câu hỏi tìm kiếm sản phẩm tương tự hoặc có cụm [tương tự, giống, tương đương, thay thế] thì trả về  SIMILARITY|[tên sản phẩm].
-    3. Câu hỏi có nội dung đặt hàng, chốt đơn hay có cụm [đặt hàng, chốt đơn, mua ngay, mua luôn] thì trả về ORDER.
+    2. Câu hỏi tìm kiếm sản phẩm tương tự hoặc có cụm ['tương tự', 'giống', 'tương đương', 'thay thế'] thì trả về  SIMILARITY|[tên sản phẩm].
+    3. Câu hỏi có nội dung đặt hàng, chốt đơn hay có cụm ['đặt hàng', 'chốt đơn', 'mua ngay', 'mua luôn'] thì trả về ORDER.
     4. Còn lại các câu hỏi khác của khách hàng thì trả về "TEXT"
     ## Với một vài trường hợp ngoại lệ sau thì không được truy vấn "ELS" mà phải chuyển qua truy vấn "TEXT".
         VD1: "Với khoảng 80 triệu tôi có thể mua được điều hòa nào?"
@@ -245,7 +242,7 @@ PROMPT_ROUTER = """
         out: SIMILARITY|điều hòa MDV 1 chiều
         in:  bán cho anh điều hòa 20 triệu công suất 9000 BTU nhé
         out: ELS
-        in:  chốt đơn cho anh cái trên 
+        in:  anh muốn đặt cái MDV 1 chiều Inverter 12.000 BTU
         out: ORDER
         in: "Em xin xác nhận lại thông tin đơn hàng của anh/chị:
                 Tên người nhận: Trần Hào
@@ -254,7 +251,7 @@ PROMPT_ROUTER = """
                 Tên sản phẩm đã chọn: Điều hòa MDV - Inverter 9000 BTU
                 Tổng giá trị đơn hàng: 6.014.184 đồng"
         out: ORDER
-        in: 5 cái điều hòa
+        in: chốt cho anh 3 cái điều hòa MDV 9000 BTU 10 triệu nhé.
         out: ORDER
     Input: {query}
 """
