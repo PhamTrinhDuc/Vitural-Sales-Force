@@ -81,6 +81,26 @@ class HelperPiline:
             logging.error("ADD SHORT LINK ERROR: " + str(e))
             return output_from_llm
         
+    def _double_check(self, question: str, dataframe: pd.DataFrame) -> str:
+        """
+        Double check the product in question.
+        Args:
+            - question: question from user.
+            - dataframe: data frame constain list product
+        Returns:
+            - results: product information obtained
+        """
+        result = ""
+        try: 
+            for index, row in dataframe.iterrows():
+                if any(str(item).lower() in question.lower() for item in (row['product_name'], row['product_info_id'])):
+                    result += f"Name: {row['product_name']} - ID: {row['product_info_id']} - Price: {row['lifecare_price']}\n"
+            return result
+        except Exception as e:
+            logging.error("DOUBLE CHECK ERROR: " + str(e))
+            return result
+        
+
 class Pipeline:
     def __init__(self):
         self.LLM_RAG = ModelLoader().load_rag_model()
@@ -175,11 +195,13 @@ class Pipeline:
         
         """
         try:
-            prompt = PromptTemplate(input_variables=['question', 'user_info'], template=PROMPT_ORDER)
-            response =  self._execute_llm_call(self.LLM_RAG, prompt.format(question=query, user_info=self.user_info))
+            all_product_data = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE)
+            original_product_info = self.PIPELINE_HELPER._double_check(question=query, dataframe=all_product_data)
+            prompt = PromptTemplate(input_variables=['question', 'user_info', 'original_product_info'], template=PROMPT_ORDER)
+            response =  self._execute_llm_call(self.LLM_RAG, prompt.format(question=query, user_info=self.user_info, original_product_info = original_product_info))
             response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
             
-            response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], dataframe=pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE))
+            response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], dataframe=all_product_data)
             if len(response['products']) > 0: # nếu có sản phẩm trong câu trả lời
                 print("PRODUCTS: ", response['products'])
                 response['content'] = self.PIPELINE_HELPER._add_short_link(output_from_llm=response['content'], product_info=response['products'][0])
