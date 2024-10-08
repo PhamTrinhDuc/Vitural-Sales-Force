@@ -91,19 +91,19 @@
 # print(response)
 
 ######### TEST CHAT API CALL ########
-from source.generate.chat_seasion import Pipeline 
-from api.handle_request import handle_request
+# from source.generate.chat_seasion import Pipeline 
+# from api.handle_request import handle_request
 
-response = handle_request(
-    InputText="tốt, chốt cho tôi sản phẩm này nhưng giảm giá còn 5 triệu nhé", 
-    UserName="Văn Thiện",
-    IdRequest="123",
-    PhoneNumber='030983479',
-    Address='Hà Nội',
-    NameBot=None,
-    Image=None,
-    Voice=None)
-print(response['content'])
+# response = handle_request(
+#     InputText="tốt, chốt cho tôi sản phẩm này nhưng giảm giá còn 5 triệu nhé", 
+#     UserName="Văn Thiện",
+#     IdRequest="123",
+#     PhoneNumber='030983479',
+#     Address='Hà Nội',
+#     NameBot=None,
+#     Image=None,
+#     Voice=None)
+# print(response['content'])
 
 # from utils.user_helper import UserHelper
 # UserHelper().save_conversation(phone_number="0123456789", id_request="123", query="gmsdgsdm,m,g", response="sdmn")
@@ -175,3 +175,17 @@ print(response['content'])
 # response = llm.invoke(PROMPT_HISTORY.format(question = "chốt cho anh 3 cái",
 #                                             chat_history = "Em xin giới thiệu cho anh chị mẫu điều hòa MDV 900BTU có giá 10 triệu")).base
 # print(response)
+
+
+import os
+import dotenv
+from langchain_openai import ChatOpenAI
+dotenv.load_dotenv()
+os.environ['LANGCHAIN_TRACING_V2'] = 'true'
+os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
+os.environ['LANGCHAIN_API_KEY'] = os.getenv("LANGCHAIN_API_KEY")
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+
+
+response = ChatOpenAI(model='gpt-4o-mini').invoke(input="Hello").content
+print(response)
