@@ -95,7 +95,7 @@
 # from api.handle_request import handle_request
 
 # response = handle_request(
-#     InputText="tốt, chốt cho tôi sản phẩm này nhưng giảm giá còn 5 triệu nhé", 
+#     InputText="giảm giá cho tôi còn 10 triệu thôi nhé", 
 #     UserName="Văn Thiện",
 #     IdRequest="123",
 #     PhoneNumber='030983479',
@@ -177,15 +177,15 @@
 # print(response)
 
 
-import os
-import dotenv
-from langchain_openai import ChatOpenAI
-dotenv.load_dotenv()
-os.environ['LANGCHAIN_TRACING_V2'] = 'true'
-os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
-os.environ['LANGCHAIN_API_KEY'] = os.getenv("LANGCHAIN_API_KEY")
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+# import os
+# import dotenv
+# from langchain_openai import ChatOpenAI
+# dotenv.load_dotenv()
+# os.environ['LANGCHAIN_TRACING_V2'] = 'true'
+# os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
+# os.environ['LANGCHAIN_API_KEY'] = os.getenv("LANGCHAIN_API_KEY")
+# os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 
 
-response = ChatOpenAI(model='gpt-4o-mini').invoke(input="Hello").content
-print(response)
+# response = ChatOpenAI(model='gpt-4o-mini').invoke(input="Hello").content
+# print(response)
