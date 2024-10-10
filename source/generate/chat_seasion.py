@@ -5,6 +5,7 @@ import logging
 import pandas as pd
 from typing import Dict, Any, List
 from langchain_core.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
 from langchain_community.callbacks.manager import get_openai_callback
 from api.deep_link import create_short_link
 from source.retriever.chroma.retriever import Retriever
@@ -31,22 +32,49 @@ class HelperPiline:
         Returns:
             - results: product information obtained
         """
-        link_header = SYSTEM_CONFIG.LINK_SEVER
-        result = []
+        results = []
         try: 
             for index, row in dataframe.iterrows():
                 if any(str(item).lower() in output_from_llm.lower() for item in (row['product_name'], row['product_info_id'])):
                     product = {
                         "product_id": row['product_info_id'],
                         "product_name": row['product_name'],
-                        "link_image": link_header + row['file_path']
+                        "link_image": row['file_path']
                     }
-                    result.append(product)
-            return result
+                    results.append(product)
+            return results
         except Exception as e:
             logging.error("PRODUCT SEEKING ERROR: " + str(e))
-            return result
+            return results
     
+    
+    def _product_confirms(self, output_from_llm: str, dataframe: pd.DataFrame) -> List[Dict[str, Any]]:
+        """
+        Get info product in output from llm.
+        Args:
+            - output_from_llm: output of llm.
+            - path_df: data frame constain list product
+        Returns:
+            - results: product information obtained
+        """
+        llm = ChatOpenAI()
+        PROMPT = """Lấy ra cho tôi số lượng sản phẩm mà khách muốn mua trong đoạn text sau:
+        {output_from_llm}
+        Lưu ý: Chỉ trả ra số lượng sản phẩm, không trả ra gì khác"""
+        
+        amount = llm.invoke(PROMPT.format(output_from_llm=output_from_llm)).content
+        print("AMOUNT: ", amount)
+        
+        results = self._product_seeking(output_from_llm, dataframe)
+        if amount:
+            for result in results:
+                result.pop("link_image", None)
+                result['amount'] = amount
+        else:
+            results = []
+        return results
+        
+        
     def _format_to_HTML(self, markdown_text: str) -> str:
         """Converts a given markdown text from output llm to HTML format.
         Args:
@@ -70,7 +98,8 @@ class HelperPiline:
             if len(product_info) == 0: # nếu không tìm thấy sản phẩm
                 return output_from_llm
             
-            pattern = r'<li><strong>số lượng:</strong>\s*(\d+)</li>'
+            pattern = r'<li><strong>Số lượng:</strong>\s*(\d+)\s*(cái|sản phẩm|)</li>' or r'Số lượng:\s*(\d+)\s*(cái|sản phẩm|)' or r'<br\s*/?>\s*Số lượng:\s*(\d+)\s*(cái|sản phẩm|)\s*<br\s*/?>' or r'<li><strong>Số lượng:</strong>\s*(\d+)\s*</li>' or r'Số lượng:\s*(\d+)\s*(cái|sản phẩm|)'  
+            
             match = re.search(pattern, output_from_llm.lower())
             quantity = match.group(1) if match else None
             print(quantity)
@@ -110,6 +139,8 @@ class Pipeline:
         self.PIPELINE_HELPER = HelperPiline()  
         # self.DB_LOGGER = PostgreHandler()   
         self.user_info = None
+    
+    
         
     def _execute_llm_call(self, llm, prompt, structured_output=None):
 
@@ -136,7 +167,7 @@ class Pipeline:
                 'total_cost': cb.total_cost
             }    
     
-    def _rewrite_query(self, query: str, history: str) -> Dict[str, Any]:
+    def _rewrite_query(self, query: str, history: list) -> Dict[str, Any]:
         """
         Rewrite the user query based on chat history.
 
@@ -155,7 +186,11 @@ class Pipeline:
             )
         except Exception as e :
             logging.error("REWRITE QUERY ERROR: " + str(e))
-            return {"content": query, "total_token": 0, 'total_cost': 0}
+            response = {"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.", 
+                        "total_token": 0, 'total_cost': 0,
+                        "status": 500, 
+                        "message": f"QUERY REWRITE ERR: {str(e)}"}
+            return response
 
 
     def _handle_similarity_search(self, query: str, product_name: str, user_info: Dict[str, Any]) -> Dict[str, Any]:
@@ -174,8 +209,10 @@ class Pipeline:
             response =  self._execute_llm_call(engine,  query)
             response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
         except Exception as e:
-            response = {"content": "", "total_token": 0, 'total_cost': 0}
-            logging.error("SIMILARITY QUERY ERROR: " + str(e))
+            response = {"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.", 
+                        "total_token": 0, 'total_cost': 0,
+                        "status": 500, 
+                        "message": f"SIMILARITY QUERY ERROR: {str(e)}"}
         return response
 
 
@@ -203,12 +240,13 @@ class Pipeline:
             response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
             
             response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], dataframe=all_product_data)
-            if len(response['products']) > 0: # nếu có sản phẩm trong câu trả lời
-                print("PRODUCTS: ", response['products'])
-                response['content'] = self.PIPELINE_HELPER._add_short_link(output_from_llm=response['content'], product_info=response['products'][0])
+            response['product_confirms'] = self.PIPELINE_HELPER._product_confirms(output_from_llm=response['content'], dataframe=all_product_data)
                 
         except Exception as e:
-            response = {"content": "", "total_token": 0, 'total_cost': 0}
+            response = {"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.", 
+                        "total_token": 0, 'total_cost': 0,
+                        "status": 500, 
+                        "message": f"Error processing request: {str(e)}"}
             logging.error("ORDER QUERY ERROR: " + str(e))
         return response 
     
@@ -244,7 +282,10 @@ class Pipeline:
             response['total_token'] += result_classify['total_token']
             response['total_cost'] += result_classify['total_cost']
         except Exception as e:
-            response = {"content": "", "total_token": 0, 'total_cost': 0}
+            response = {"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.", 
+                        "total_token": 0, 'total_cost': 0,
+                        "status": 500, 
+                        "message": f"Error processing request: {str(e)}"}
             logging.error("TEXT QUERY ERROR: " + str(e))
 
         return response
@@ -271,7 +312,11 @@ class Pipeline:
             response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
             response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], dataframe=pd.DataFrame(products_info))
         except Exception as e:
-            response = {"content": "", "total_token": 0, 'total_cost': 0}
+            response = {"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.", 
+                        "total_token": 0, 'total_cost': 0,
+                        "status": 500, 
+                        "message": f"Error processing request: {str(e)}"}
+            
             logging.error("ELASTIC SEARCH QUERY ERROR: " + str(e))
 
         return response
@@ -303,13 +348,13 @@ class Pipeline:
         self.user_info = self.USER_HELPER.get_user_info(UserInfor['phone_number'])
 
         storage_info_output = {
-            "products": [], "terms": [], "content": "", "total_token": 0, 'total_cost': 0,
+            "products": [], "product_confirms": [], "terms": [], "content": "", "total_token": 0, 'total_cost': 0,
             "status": 200, "message": "",
         }
 
         try:
             history_conversation = self.USER_HELPER.load_conversation(conv_user=UserInfor['phone_number'], id_request=IdRequest)
-            # print("HISTORY: ", history_conversation)
+            # print("HISRORY", history_conversation)
             result_rewriten = self._rewrite_query(query=InputText, history=history_conversation)
             query_rewritten = result_rewriten['content']
             print("QUERY REWRITE:", query_rewritten)
@@ -318,7 +363,6 @@ class Pipeline:
 
             result_type = decision_search_type(result_rewriten['content'])
             search_type = result_type['content']
-            print(search_type)
             storage_info_output['total_token'] += result_type['total_token']
             storage_info_output['total_cost'] += result_type['total_cost']
             
@@ -333,17 +377,23 @@ class Pipeline:
             else:  # Elastic search
                 results = self._handle_elastic_search(query_rewritten)
 
+            if "product_confirms" in results and len(results['product_confirms']) > 0:
+                results['content'] += "\n<p>🌟Qúy khách đã sẵn sàng sở hữu sản phẩm tuyệt vời này chưa? Hãy bấm nút 'Mua hàng' ngay để tiến hành thanh toán giúp em nhé 🛒✨! Viettel Construction xin cảm ơn quý khách rất nhiều</p>"
+
             storage_info_output.update({
                 'content': results['content'],
                 'total_token': storage_info_output['total_token'] + results['total_token'],
                 'total_cost': storage_info_output['total_cost'] + results['total_cost'],
+                'product_confirms': results.get('product_confirms', []),
                 'products': results.get('products', []),
                 'message': "Request processed successfully."
             })
-            self.USER_HELPER.save_conversation(phone_number=UserInfor['phone_number'], query=query_rewritten, id_request=IdRequest, response=storage_info_output['content'])
+            self.USER_HELPER.save_conversation(phone_number=UserInfor['phone_number'], query=InputText, id_request=IdRequest, response=storage_info_output['content'])
         
         except Exception as e:
-            storage_info_output.update({"status": 500, "message": f"Error processing request: {e}"})
+            storage_info_output.update({"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.",
+                                        "status": 500, 
+                                        "message": f"Error processing request: {str(e)}"})
             logging.error("CHAT SESSION ERROR: " + str(e))
         
         # self.DB_LOGGER.save_log(

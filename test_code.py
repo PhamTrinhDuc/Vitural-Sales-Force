@@ -4,7 +4,7 @@
 
 ######## TEST ELASTICSEARCH ########
 # from source.retriever.elastic_search import search_db, classify_intent
-# query = "điều hòa giá đắt nhất"
+# query = "bán cho tao điều hòa giá rẻ"
 # demands = classify_intent(question=query)
 # print(demands)
 # response = search_db(demands=demands)
@@ -33,9 +33,9 @@
 
 ######### TEST ROUTER ########
 # from source.router.router import decision_search_type
-# query = "tôi muốn tìm sản phẩm điều hòa MDV - inverter 9000 btu có giá 20 triệu"
+# query = "Cho tôi xem tạm 3 sản phẩm điều hòa giá rẻ"
 # type = decision_search_type(query=query)
-# print("Type:\n", type)
+# print("Type:\n", type['content'])
 
 # ######### TEST TOOL SEARCH ########
 # from source.similar_product.searcher import SimilarProductSearchEngine
@@ -91,22 +91,22 @@
 # print(response)
 
 ######### TEST CHAT API CALL ########
-# from source.generate.chat_seasion import Pipeline 
-# from api.handle_request import handle_request
+from source.generate.chat_seasion import Pipeline 
+from api.handle_request import handle_request
 
-# response = handle_request(
-#     InputText="giảm giá cho tôi còn 10 triệu thôi nhé", 
-#     UserName="Văn Thiện",
-#     IdRequest="123",
-#     PhoneNumber='030983479',
-#     Address='Hà Nội',
-#     NameBot=None,
-#     Image=None,
-#     Voice=None)
-# print(response['content'])
+response = handle_request(
+    InputText = "tôi muốn chốt 5 cái cơ mà",
+    UserName="Hoàng",
+    IdRequest="9989",
+    PhoneNumber='0886945868',
+    Address='Hà Nội',
+    Voice = None,
+    Image=None,
+    NameBot=None)
+print(response)
 
 # from utils.user_helper import UserHelper
-# UserHelper().save_conversation(phone_number="0123456789", id_request="123", query="gmsdgsdm,m,g", response="sdmn")
+# UserHelper().save_conversation(phone_number="0123456789", id_request="123", query="gmsdgsdm", response="sdmn")
 # response = UserHelper().load_conversation(conv_user="0123456789", id_request="123")
 # print(response)
 
@@ -163,29 +163,3 @@
 
 # print(time.time() - st)
 
-
-############# TEST REWRITE ###############
-# from utils.schemas import GradeReWrite
-# from configs.config_system import SYSTEM_CONFIG
-# from source.prompt.template import PROMPT_HISTORY
-# from source.model.loader import ModelLoader
-
-
-# llm = ModelLoader().load_rag_model().with_structured_output(GradeReWrite)
-# response = llm.invoke(PROMPT_HISTORY.format(question = "chốt cho anh 3 cái",
-#                                             chat_history = "Em xin giới thiệu cho anh chị mẫu điều hòa MDV 900BTU có giá 10 triệu")).base
-# print(response)
-
-
-# import os
-# import dotenv
-# from langchain_openai import ChatOpenAI
-# dotenv.load_dotenv()
-# os.environ['LANGCHAIN_TRACING_V2'] = 'true'
-# os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
-# os.environ['LANGCHAIN_API_KEY'] = os.getenv("LANGCHAIN_API_KEY")
-# os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-
-
-# response = ChatOpenAI(model='gpt-4o-mini').invoke(input="Hello").content
-# print(response)
