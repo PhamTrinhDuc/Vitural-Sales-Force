@@ -43,26 +43,26 @@ class PostgreHandler:
             return None, f"Unknown error: {e}"
 
 
-    def create_table(self):
-        create_table_query = '''
-        CREATE TABLE IF NOT EXISTS sales_force.log_chat_sales_force(
-            id SERIAL PRIMARY KEY,
-            user_name VARCHAR(255) NOT NULL,
-            phone_number VARCHAR(255) NOT NULL,
-            session_id VARCHAR(255) NOT NULL,
-            date_request TIMESTAMP,
-            total_token INT,
-            total_cost FLOAT,
-            time_request VARCHAR(255),
-            status VARCHAR(255),
-            error_message TEXT,
-            human_chat TEXT,
-            bot_chat TEXT
-        )
-        '''
+    def create_table(self, query: str):
+        # create_table_query = '''
+        # CREATE TABLE IF NOT EXISTS sales_force.log_chat_sales_force(
+        #     id SERIAL PRIMARY KEY,
+        #     user_name VARCHAR(255) NOT NULL,
+        #     phone_number VARCHAR(255) NOT NULL,
+        #     session_id VARCHAR(255) NOT NULL,
+        #     date_request TIMESTAMP,
+        #     total_token INT,
+        #     total_cost FLOAT,
+        #     time_request VARCHAR(255),
+        #     status VARCHAR(255),
+        #     error_message TEXT,
+        #     human_chat TEXT,
+        #     bot_chat TEXT
+        # )
+        # '''
         try:    
             with self.connection.cursor() as cusor:
-                cusor.execute(create_table_query)
+                cusor.execute(query=query)
                 self.connection.commit()
                 logging.info("Table created successfully in PostgreSQL")
         except Exception as e:

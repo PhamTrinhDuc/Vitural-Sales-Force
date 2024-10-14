@@ -27,7 +27,8 @@ class LoadConfig:
     VOICE_URL = "http://10.248.243.105:8005/voice"
 
     # ELASTIC_SEACH_CONFIG
-    INDEX_NAME = "chatbot_super_app_v2"
+    # INDEX_NAME = "chatbot_super_app_v2"
+    INDEX_NAME = "chatbot_super_app_custom"
     ELASTIC_URL =  'http://10.248.243.105:9200'
     NUM_SIZE_ELAS =  10
     QUANTITY_SPECIFICATIONS =  ['số lượng', 'bao nhiêu', 'mấy loại', 'số lượng sản phẩm', 'danh sách', 'tổng số', 'mấy', 'liệt kê số lượng', 'liệt kê', 'số lượng hiện còn', 'danh sách đang còn hàng']
@@ -36,7 +37,7 @@ class LoadConfig:
 
     # DIRECTORIES
     VECTOR_DATABASE_STORAGE = 'data/vector_db'
-    ALL_PRODUCT_FILE_CSV_STORAGE = 'data/data_private/data_final_superapp.xlsx'
+    ALL_PRODUCT_FILE_CSV_STORAGE = 'data/data_private/data_final_superapp_custom.xlsx'
     SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE = 'data/data_private/data_detail_superapp'
     SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE = 'data/data_private/data_text'
     SIMILAR_PRODUCT_STORAGE = 'data/data_private/data_dienmayxanh.csv'
@@ -59,6 +60,7 @@ class LoadConfig:
     TOP_P = 0.9
     
     NUM_PRODUCT = 22
+    TOP_CONVERSATION = 4
     ID_2_NAME_PRODUCT = {
         1: "ban_la",
         2: "bep_tu",
@@ -66,9 +68,9 @@ class LoadConfig:
         4: "binh_nuoc_nong",
         5: "cong_tac_o_cam_thong_minh",
         6: "dieu_hoa",
-        7: "den_nang_luong_mat_troi",
+        7: "dnlmt",
         8: "ghe_massage_daikiosan",
-        9: "lo_vi_song_lo_nuong",
+        9: "lo_vi_song__lo_nuong",
         10: "may_giat",
         11: "may_loc_khong_khi_may_hut_bui",
         12: "may_loc_nuoc",
@@ -85,18 +87,18 @@ class LoadConfig:
     }
 
     MESSAGE = [
-        "Xin chào! Em là Phương Nhi, trợ lý AI của bạn tại VCC. Em đang phát triển nên không phải lúc nào cũng đúng. Anh/chị có thể phản hồi để giúp em cải thiện tốt hơn. Em xin chân thành cảm ơn!",
-        "Em rất vui khi được hỗ trợ anh/chị! Em là Phương Nhi, trợ lý AI tư vấn bán hàng của VCC. Do đang trong quá trình hoàn thiện nên em có thể mắc lỗi. Mọi góp ý của anh/chị đều giúp em ngày càng hoàn thiện. Em có thể giúp gì cho bạn về các vấn đề chính sách hoặc tìm kiếm thông tin sản phẩm hôm nay?",
-        "Xin chào! Em là Phương Nhi,trợ lý AI tư vấn bán hàng của VCC. Em vẫn đang trong giai đoạn phát triển và có thể không hoàn hảo. Hãy giúp em cải thiện bằng cách phản hồi về trải nghiệm của anh/chị. Em có thể hỗ trợ bạn gì về chính sách hoặc thông tin sản phẩm hôm nay?",
-        "Xin chào anh/chị! Em rất hân hạnh được hỗ trợ anh chị trong việc tìm kiếm sản phẩm và chính sách.",
-        "Rất vui khi được hỗ trợ anh/chị trong việc tìm kiếm sản phẩm. Do đang trong quá trình hoàn thiện nên em có thể mắc lỗi. Mong anh/chị thông cảm!"
-        ]
+        "Chào mừng anh/chị đã đến với Viettel Construction. Anh/chị cần tìm hiểu sản phẩm nào ạ ?",
+        "Em rất vui khi được hỗ trợ anh/chị! Em có thể giúp gì cho anh/chị về các vấn đề chính sách hoặc tìm kiếm thông tin sản phẩm hôm nay?",
+        "Xin chào anh/chị! Hôm nay anh chị muốn tìm kiếm sản phẩm nào cho gia đình ạ ?",
+        "Chào mừng anh/chị đến với gian hàng tại Viettel Construction. Hôm nay em có thể tư vấn cho anh chị sản phẩm nào ạ ?"
+    ]
+    
     BUTTON = [
         "bán cho tôi điều hòa giá rẻ nhất",
-        "đèn năng lượng mặt trời giá khoảng 1 triệu",
-        "Với ngân sách tầm dưới 10 triệu anh/chị có thể mua điều hòa nào?",
-        "Anh/chị cần tìm đèn năng lượng mặt trời giá 500k",
-        "Đèn năng lượng mặt trời có câm nặng tầm 3kg",
+        "Bán cho tôi đèn năng lượng mặt trời giá khoảng 1 triệu",
+        "Điều hòa nào tốt cho người già và trẻ em ?",
+        "Nồi cơm điện cho gia đình 4 người",
+        "Ghế massage nào có giá hợp lý và phù hợp cho người lớn tuổi?",
     ]
     
 SYSTEM_CONFIG = LoadConfig()

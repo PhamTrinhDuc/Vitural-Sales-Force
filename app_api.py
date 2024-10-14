@@ -45,4 +45,45 @@ async def post(
     return results
 
 uvicorn.run(app, host="0.0.0.0", port=SYSTEM_CONFIG.PORT)
-# uvicorn.run(app, host="0.0.0.0", port=8000)
+# uvicorn.run(app, host="0.0.0.0", port=8088)
+
+@app.get('/get_conv_title')
+async def get(
+    
+):
+    results = {
+        'data' : [
+        {
+            "session_id": "",
+            "title": ""
+        },
+        {
+            "session_id": "",
+            "title": ""
+        }
+
+    ],
+        "status_code" : 200,
+        "message" : "yess"
+    }
+    return results
+
+
+@app.post('/get_chat_conv')
+async def post(
+    sessionId: str = Form(...)
+):
+    results =[
+                {
+                    "human": "",
+                    "ai": ""
+                },
+                {
+                    "human": "",
+                    "ai": ""
+                }
+            ]
+    return results
+
+uvicorn.run(app, host="0.0.0.0", port=SYSTEM_CONFIG.PORT)
+# uvicorn.run(app, host="0.0.0.0", port=8088)

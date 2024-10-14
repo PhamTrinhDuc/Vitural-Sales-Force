@@ -8,15 +8,8 @@ from langchain_core.documents import Document
 
 class IngestBuilder:
     def __init__(self):
-        self._process_data(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE)
         if len(os.listdir(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE)) < SYSTEM_CONFIG.NUM_PRODUCT:
             self.chunk_all_data()
-
-    def _process_data(self, xlsx_link: str) -> None:
-        df = pd.read_excel(xlsx_link)
-        df['product_info_id'] = df['product_info_id'].apply(lambda x : int(str(x).replace(".", "")))
-        df.to_excel(xlsx_link, index=False)
-
 
     def chunk_FQA_data(self, xlsx_link: str) -> List[Document]:
 
@@ -35,6 +28,7 @@ class IngestBuilder:
             answer = row['Answer Bot']
             s = f"Question: {question}\n"
             data_text.append(Document(s))
+        
         return data_text
 
 
@@ -61,8 +55,8 @@ class IngestBuilder:
                 product_info_id = row['product_info_id'] 
                 specification = row['specification']
                 lifecare_price = row['lifecare_price']
-                s1 = f"Product_name: {product_name} - ID: {product_info_id} - Price: {lifecare_price}\n"
-                s2 = f"Specifications:\n {specification}\n"
+                s1 = f"Tên sản phẩm: '{product_name}' - Mã sản phẩm : {product_info_id} - Giá: {lifecare_price}\n"
+                s2 = f"Thông số kỹ thuật:\n {specification}\n"
                 stored_data.append(Document(s1 + s2 + "\n"))
 
             file_text_data = os.path.join(TEXT_DATA_PATH, file_name.replace(".csv", ".pkl"))

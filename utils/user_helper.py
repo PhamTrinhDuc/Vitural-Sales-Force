@@ -72,7 +72,7 @@ class UserHelper:
         if not id_request in conversation:
             conversation[id_request] = []
         response_cleaned = self._clean_html(response)
-        conversation[id_request].append({"query": query, "response": response_cleaned})
+        conversation[id_request].append({"human": query, "ai": response_cleaned})
 
         with open(user_specific_conversation, mode='w', encoding='utf-8') as f:
             json.dump(conversation, f, ensure_ascii=False, indent=2)
@@ -88,8 +88,9 @@ class UserHelper:
             history: List[Dict]: lịch sử cuộc hội thoại
         """
         if not conv_user or not id_request:
-            return ""
+            return []
         else:
+            history = []
             conversation_key = f"{id_request}.json"
             os.makedirs(os.path.join(self.CONVERSATION_PATH, conv_user), exist_ok=True)
             user_specific_conversation = os.path.join(self.CONVERSATION_PATH, conv_user, conversation_key)
@@ -98,16 +99,11 @@ class UserHelper:
                     with open(user_specific_conversation, 'r') as f:
                         conversation = json.load(f)
                         if id_request in conversation:
-                            history = conversation[id_request][-3:]
-                            hitory_str = ""
-                            for item in history:
-                                hitory_str += 'query: ' + item['query'] + ' \n' + 'response: ' +  item['response'] + " \n\n"
+                            return conversation[id_request][-SYSTEM_CONFIG.TOP_CONVERSATION:]
                         else:
-                            hitory_str = ""
+                            return []
                 except json.JSONDecodeError as e :
                     logging.ERROR("LOAD CONVERSATION ERROR: ", e)
-                    hitory_str = ""
+                    return []
             else: 
-                hitory_str = ""
-
-            return hitory_str
+                return []
