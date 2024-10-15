@@ -1,8 +1,13 @@
 import random
 import time
+import json
+import os
 from typing import Dict, Optional
 from source.generate.chat_seasion import Pipeline
+from utils.utils_pipline import HelperPiline
 from configs import SYSTEM_CONFIG
+
+HELPER = HelperPiline()
 
 
 def handle_request(
@@ -53,3 +58,45 @@ def handle_request(
 
     results['time_processing'] = f"{time.time() - start_time:.2f}s"
     return results
+
+
+def handle_title_conversation(phone_number: None) -> dict:
+    data = {"data": [], "status": 200, "message": None}
+    try:
+        user_specific_conversation = os.path.join(SYSTEM_CONFIG.CONVERSATION_STORAGE, phone_number)
+        for session_path in os.listdir(user_specific_conversation):
+            session_conv_path = os.path.join(user_specific_conversation, session_path)
+            with open(session_conv_path, mode='r', encoding='utf-8') as f:
+                conversation = json.load(f)
+            session_id = list(conversation.keys())[0]
+            title = conversation[session_id][0]['human']
+            data['data'].append({"session_id": session_id, "title": title})
+        data['message'] = "Get conversation title successfull!"
+    except Exception as e:
+        data['status'] = 500
+        data['message'] = "Error - HANDLE TITLE CONVERSATION: " + str(e)
+        
+    return data
+
+
+def handle_conversation(phone_number: None, session_id: None) -> dict:
+    data = {"data": None, "status": 200, "message": None}
+    try:
+        session_conv_path = os.path.join(SYSTEM_CONFIG.CONVERSATION_STORAGE, phone_number, session_id + '.json')
+        with open(session_conv_path, mode='r', encoding='utf-8') as f:
+                conversation = json.load(f)
+        
+        data['data'] = conversation[session_id]
+        data['message'] = "Get conversation successfull!"
+    except Exception as e:
+        data['status'] = 500
+        data['message'] = "Error - HANDLE CONVERSATION: " + str(e)
+    return data
+
+if __name__ == "__main__":
+    data = handle_title_conversation("088695868")
+    print(data)
+            
+    
+    
+    

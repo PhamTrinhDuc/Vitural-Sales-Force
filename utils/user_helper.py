@@ -13,7 +13,20 @@ class UserHelper:
         self.INFO_USER_PATH = SYSTEM_CONFIG.INFO_USER_STORAGE
         os.makedirs(self.CONVERSATION_PATH, exist_ok=True)
         os.makedirs(self.INFO_USER_PATH, exist_ok=True)
-
+        
+    def _clean_html(self, html_text: str) -> str:
+        """
+        Xóa các thẻ html từ phần output của chatbot
+        Args:
+            html_text: str: phần trả lời của bot sau khi đã format sang html
+        Returns:
+            clean_text: str: phần trả lời của bot sau khi đã xóa các thẻ html
+        """
+        clean_text = re.sub(r'<[^>]+>', '', html_text)
+        clean_text = re.sub(r'\n+', '\n', clean_text)
+        clean_text = clean_text.strip()
+        return clean_text
+    
     def get_user_info(self, phone_number: str) -> Dict:
         """
         Hàm để load thông tin người dùng từ file yaml
@@ -33,19 +46,6 @@ class UserHelper:
         user_info_specific = os.path.join(self.INFO_USER_PATH, f"{users['phone_number']}.json")
         with open(user_info_specific, "w") as f:
             json.dump(users, f, ensure_ascii=False, indent=2)
-
-    def _clean_html(self, html_text: str) -> str:
-        """
-        Xóa các thẻ html từ phần output của chatbot
-        Args:
-            html_text: str: phần trả lời của bot sau khi đã format sang html
-        Returns:
-            clean_text: str: phần trả lời của bot sau khi đã xóa các thẻ html
-        """
-        clean_text = re.sub(r'<[^>]+>', '', html_text)
-        clean_text = re.sub(r'\n+', '\n', clean_text)
-        clean_text = clean_text.strip()
-        return clean_text
     
     def save_conversation(self, phone_number: str, id_request: str,
                           query: str, response: str) -> None:
@@ -71,8 +71,7 @@ class UserHelper:
         # lưu lại cuộc trò chuyện mới vào file json
         if not id_request in conversation:
             conversation[id_request] = []
-        response_cleaned = self._clean_html(response)
-        conversation[id_request].append({"human": query, "ai": response_cleaned})
+        conversation[id_request].append({"human": query, "ai": response})
 
         with open(user_specific_conversation, mode='w', encoding='utf-8') as f:
             json.dump(conversation, f, ensure_ascii=False, indent=2)
@@ -99,7 +98,11 @@ class UserHelper:
                     with open(user_specific_conversation, 'r') as f:
                         conversation = json.load(f)
                         if id_request in conversation:
-                            return conversation[id_request][-SYSTEM_CONFIG.TOP_CONVERSATION:]
+                            conversation =  conversation[id_request][-SYSTEM_CONFIG.TOP_CONVERSATION:]
+                            for conv in conversation:
+                                conv['human'] = self._clean_html(conv['human'])
+                                conv['ai'] = self._clean_html(conv['ai'])
+                            return conversation
                         else:
                             return []
                 except json.JSONDecodeError as e :

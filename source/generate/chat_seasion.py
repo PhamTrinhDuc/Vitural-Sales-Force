@@ -1,18 +1,18 @@
 import os
 import re
-import markdown
+import time
 import logging
 import pandas as pd
+from datetime import datetime
 from typing import Dict, Any, List
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
+from source.model.loader import ModelLoader
 from langchain_community.callbacks.manager import get_openai_callback
-from api.deep_link import create_short_link
 from source.retriever.chroma.retriever import Retriever
 from source.router.router import decision_search_type, classify_product
 from source.retriever.elastic_search import search_db, classify_intent
 from source.similar_product.searcher import SimilarProductSearchEngine
-from source.model.loader import ModelLoader
 from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_CHATCHIT, PROMPT_ORDER
 from utils import GradeReWrite, UserHelper, timing_decorator, PostgreHandler
 from utils.utils_pipeline import HelperPiline
@@ -26,7 +26,7 @@ class Pipeline:
         self.LLM_CHAT_CHIT = ModelLoader().load_chatchit_model()
         self.USER_HELPER =  UserHelper()  
         self.PIPELINE_HELPER = HelperPiline()  
-        # self.DB_LOGGER = PostgreHandler()   
+        self.DB_LOGGER = PostgreHandler()   
         self.user_info = None
     
     
@@ -128,7 +128,7 @@ class Pipeline:
             response =  self._execute_llm_call(self.LLM_RAG, prompt.format(question=query, user_info=self.user_info, original_product_info = original_product_info))
             response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
             
-            response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], query_rewritten= query, dataframe=all_product_data)
+            response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], query_rewritten=query, dataframe=all_product_data)
             response['product_confirms'] = self.PIPELINE_HELPER._product_confirms(output_from_llm=response['content'], query_rewritten=query, dataframe=all_product_data)
                 
         except Exception as e:
@@ -165,7 +165,7 @@ class Pipeline:
                 response = self._execute_llm_call(self.LLM_RAG, prompt.format(context=context, question=query, user_info=self.user_info))
                 
                 specified_product_data  = pd.read_csv(os.path.join(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE, db_name + ".csv"))
-                response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], query_rewritten= query, dataframe=specified_product_data)
+                response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], query_rewritten=query, dataframe=specified_product_data)
         
             response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
             response['total_token'] += result_classify['total_token']
@@ -238,12 +238,12 @@ class Pipeline:
 
         storage_info_output = {
             "products": [], "product_confirms": [], "terms": [], "content": "", "total_token": 0, 'total_cost': 0,
-            "status": 200, "message": "",
+            "status": 200, "message": "", "time_processing": None,
         }
-
+        time_in = time.time()
         try:
             history_conversation = self.USER_HELPER.load_conversation(conv_user=UserInfor['phone_number'], id_request=IdRequest)
-            # print("HISRORY", history_conversation)
+            print("HISRORY", history_conversation)
             result_rewriten = self._rewrite_query(query=InputText, history=history_conversation)
             query_rewritten = result_rewriten['content']
             print("QUERY REWRITE:", query_rewritten)
@@ -268,7 +268,7 @@ class Pipeline:
 
             # if len(results.get("product_confirms", [])) > 0:
             #     results['content'] += "<hr />🌟 Qúy khách đã sẵn sàng sở hữu sản phẩm tuyệt vời này chưa? Hãy bấm nút 'Mua hàng' ngay để  tiến hành thanh toán! 🛒✨. Viettel Construction xin chân thành cảm ơn !!"
-                
+            
             storage_info_output.update({
                 'content': results['content'],
                 'total_token': storage_info_output['total_token'] + results['total_token'],
@@ -277,23 +277,31 @@ class Pipeline:
                 'products': results.get('products', []),
                 'message': "Request processed successfully."
             })
-            self.USER_HELPER.save_conversation(phone_number=UserInfor['phone_number'], query=InputText, id_request=IdRequest, response=storage_info_output['content'])
+            self.USER_HELPER.save_conversation(phone_number=UserInfor['phone_number'], query=InputText, id_request=IdRequest, response=results['content'])
         
         except Exception as e:
             storage_info_output.update({"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.",
                                         "status": 500, 
-                                        "message": f"Error processing request: {str(e)}"})
+                                        "message": f"Error processing request in func CHAT SESSION: {str(e)}"})
             logging.error("CHAT SESSION ERROR: " + str(e))
+            
+        storage_info_output['time_processing'] = time.time() - time_in
         
-        # self.DB_LOGGER.save_log(
-        #     phone_number=UserInfor['phone_number'],
-        #     id_request=IdRequest,
-        #     query=InputText,
-        #     response=storage_info_output['content'],
-        #     status=storage_info_output['status'],
-        #     time_processing=storage_info_output['total_token'],
-        #     cost=storage_info_output['total_cost']
-        # )
+        # Save log to database
+        self.DB_LOGGER.insert_data(
+            user_name=UserInfor['name'],
+            phone_number=UserInfor['phone_number'],
+            # object=None,
+            session_id=IdRequest,
+            human_chat=InputText,
+            bot_chat=storage_info_output['content'],
+            status=storage_info_output['status'],
+            total_token=storage_info_output['total_token'],
+            toal_cost=storage_info_output['total_cost'],
+            date_request=datetime.now().strftime("%A, %d %B %Y, %H:%M:%S"),
+            error_message=storage_info_output['message'],
+            time_request=storage_info_output['time_processing']
+        )
         return storage_info_output
 
 if __name__ == "__main__":

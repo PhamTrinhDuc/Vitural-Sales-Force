@@ -11,6 +11,19 @@ class HelperPiline:
     def __init__(self):
         pass
     
+    def _clean_html(self, html_text: str) -> str:
+        """
+        Xóa các thẻ html từ phần output của chatbot
+        Args:
+            html_text: str: phần trả lời của bot sau khi đã format sang html
+        Returns:
+            clean_text: str: phần trả lời của bot sau khi đã xóa các thẻ html
+        """
+        clean_text = re.sub(r'<[^>]+>', '', html_text)
+        clean_text = re.sub(r'\n+', '\n', clean_text)
+        clean_text = clean_text.strip()
+        return clean_text
+    
     def _product_seeking(self, output_from_llm: str, query_rewritten: str,  dataframe: pd.DataFrame) -> List[Dict[str, Any]]:
         """
         Get info product in output from llm.
@@ -84,31 +97,6 @@ class HelperPiline:
         html_output = md.convert(markdown_text)
         return html_output
     
-    def _add_short_link(self, output_from_llm: str, product_info: List[Dict[str, Any]]) -> str:
-
-        """Adds a short link to the output from LLM if a quantity is found in the output.
-        Args:
-            output_from_llm (str): The output string from the LLM which may contain a quantity in a specific format.
-        Returns:
-            str: The modified output string with an added short link if a quantity is found, otherwise returns the original output string.
-        """
-        try:
-            if len(product_info) == 0: # nếu không tìm thấy sản phẩm
-                return output_from_llm
-            
-            pattern = r'<li><strong>Số lượng:</strong>\s*(\d+)\s*(cái|sản phẩm|)</li>' or r'Số lượng:\s*(\d+)\s*(cái|sản phẩm|)' or r'<br\s*/?>\s*Số lượng:\s*(\d+)\s*(cái|sản phẩm|)\s*<br\s*/?>' or r'<li><strong>Số lượng:</strong>\s*(\d+)\s*</li>' or r'Số lượng:\s*(\d+)\s*(cái|sản phẩm|)'  
-            
-            match = re.search(pattern, output_from_llm.lower())
-            quantity = match.group(1) if match else None
-            print(quantity)
-            if quantity and product_info['product_id']: # nếu tìm thấy số lượng
-                short_link = create_short_link(product_id=product_info['product_id'], quantity=quantity)
-                return f"""{output_from_llm} <a href={short_link['shortLink']} style="color: blue;">Xác nhận</a>"""
-            return output_from_llm
-        except Exception as e:
-            logging.error("ADD SHORT LINK ERROR: " + str(e))
-            return output_from_llm
-        
     def _double_check(self, question: str, dataframe: pd.DataFrame) -> str:
         """
         Double check the product in question.
