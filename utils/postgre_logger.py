@@ -87,7 +87,7 @@ class PostgreHandler:
             logging.error(f"Error insert data: {e}")
             self.connection.rollback()
     
-    def get_logging(self):
+    def get_logging(self, phone_number: str, session_id: str) -> pd.DataFrame:
         select_query = '''
         SELECT * FROM sales_forces.log_chat_sales_force
         '''

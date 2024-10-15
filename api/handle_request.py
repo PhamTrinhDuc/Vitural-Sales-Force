@@ -4,7 +4,7 @@ import json
 import os
 from typing import Dict, Optional
 from source.generate.chat_seasion import Pipeline
-from utils.utils_pipline import HelperPiline
+from utils.utils_pipeline import HelperPiline
 from configs import SYSTEM_CONFIG
 
 HELPER = HelperPiline()
