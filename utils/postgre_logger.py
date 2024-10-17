@@ -49,16 +49,19 @@ class PostgreHandler:
         CREATE TABLE IF NOT EXISTS sales_force.log_chat_sales_force(
             id SERIAL PRIMARY KEY,
             user_name VARCHAR(50) NOT NULL,
-            phone_number VARCHAR(50) NOT NULL,
-            session_id VARCHAR(50) NOT NULL,
+            phone_number VARCHAR(20) NOT NULL,
+            session_id VARCHAR(100) NOT NULL,
+            object_product TEXT,
             date_request TIMESTAMP,
             total_token INT,
             total_cost FLOAT,
-            time_request VARCHAR(50),
-            status VARCHAR(50),
+            time_request VARCHAR(255),
+            status VARCHAR(100),
             error_message TEXT,
-            human_chat TEXT,
-            bot_chat TEXT
+            name_bot TEXT,
+            rewritten_human TEXT,
+            human TEXT,
+            ai TEXT
         )
         '''
         try:    
@@ -70,24 +73,29 @@ class PostgreHandler:
             logging.error(f"Error create table : {e}")
             self.connection.rollback()
 
-    def insert_data(self, user_name: str, phone_number: str, session_id: str, date_request: str, total_token: int, toal_cost: float,
-                    time_request: str, status: str, error_message: str, human_chat: str, bot_chat: str):
+    def insert_data(self, user_name: str, phone_number: str, session_id: str, object_product: str, 
+                    date_request: str, total_token: int, toal_cost: float, time_request: str, status: str, 
+                    error_message: str, name_bot: str, rewritten_human: str, human: str, ai: str):
         
         insert_query = '''
-        INSERT INTO sales_force.log_chat_sales_force(user_name, phone_number, session_id, date_request, total_token, total_cost, time_request, status, error_message, human_chat, bot_chat)
-        VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO sales_force.log_chat_sales_force(user_name, phone_number, session_id, object_product, 
+            date_request, total_token, total_cost, time_request, status, error_message, 
+            name_bot, rewritten_human, human, ai)
+        VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         '''
 
         try:
             with self.connection.cursor() as cursor:
-                cursor.execute(insert_query, (user_name, phone_number, session_id, date_request, total_token, toal_cost, time_request, status, error_message, human_chat, bot_chat))
+                cursor.execute(insert_query, (user_name, phone_number, session_id, object_product, 
+                                              date_request, total_token, toal_cost, time_request, status, error_message, 
+                                              name_bot, rewritten_human, human, ai))
                 self.connection.commit()
                 logging.info("Data inserted successfully in PostgreSQL")
         except Exception as e:
-            logging.error(f"Error insert data: {e}")
+            logging.error(f"Error insert data to database: {e}")
             self.connection.rollback()
     
-    def get_logging(self, phone_number: str, session_id: str) -> pd.DataFrame:
+    def get_logging(self):
         select_query = '''
         SELECT * FROM sales_forces.log_chat_sales_force
         '''

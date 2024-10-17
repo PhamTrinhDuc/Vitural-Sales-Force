@@ -96,6 +96,7 @@ class LoadConfig:
     }
 
     MESSAGE = [
+        "Chào anh/chị, Viettel Construction cảm ơn anh/chị đã quan tâm đến sản phẩm và dịch vụ của Tổng Công ty. Em có thể hỗ trợ anh/chị thông tin gì không ạ?",
         "Chào mừng anh/chị đã đến với Viettel Construction. Anh/chị cần tìm hiểu sản phẩm nào ạ ?",
         "Em rất vui khi được hỗ trợ anh/chị! Em có thể giúp gì cho anh/chị về các vấn đề chính sách hoặc tìm kiếm thông tin sản phẩm hôm nay?",
         "Xin chào anh/chị! Hôm nay anh chị muốn tìm kiếm sản phẩm nào cho gia đình ạ ?",
@@ -103,11 +104,15 @@ class LoadConfig:
     ]
     
     BUTTON = [
-        "bán cho tôi điều hòa giá rẻ nhất",
+        "Bán cho tôi điều hòa giá rẻ nhất",
         "Bán cho tôi đèn năng lượng mặt trời giá khoảng 1 triệu",
         "Điều hòa nào tốt cho người già và trẻ em ?",
         "Nồi cơm điện cho gia đình 4 người",
         "Ghế massage nào có giá hợp lý và phù hợp cho người lớn tuổi?",
     ]
+    
+    SYSTEM_MESSAGE = {"error_system": "Đã có vấn đề xảy ra, anh/ chị vui lòng đặt lại câu hỏi để được hỗ trợ ạ!",
+                      "end_message": "Cảm ơn anh/chị đã quan tâm đến sản phẩm và dịch vụ của Viettel Construction. Nếu có bất kì thắc mắc hay câu hỏi xin vui lòng liên hệ đến tổng đài: 18009377.",
+                      "question_other": "Hiện tại, bên em chưa có thông tin về câu hỏi này. Anh/ chị có thể liên hệ đến tổng đài: 18009377 để được tư vấn thêm & hỗ trợ. Em xin chân thành cảm ơn!"} # lỗi
     
 SYSTEM_CONFIG = LoadConfig()

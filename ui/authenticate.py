@@ -3,7 +3,7 @@ import streamlit as st
 from typing import List, Dict
 import hashlib
 from configs import SYSTEM_CONFIG
-from utils.user_helper import UserHelper
+from utils.utils_users import UserHelper
 
 # ma hoa mat khau
 def hash_password(password: str) -> str:

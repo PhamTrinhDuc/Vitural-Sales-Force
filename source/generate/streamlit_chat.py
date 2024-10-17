@@ -11,7 +11,7 @@ from source.similar_product.searcher import SimilarProductSearchEngine
 from source.model.loader import ModelLoader
 from source.prompt.template import PROMPT_HEADER, PROMPT_HISTORY, PROMPT_ORDER, PROMPT_CHATCHIT
 from utils.timekeeper import timing_decorator
-from utils.user_helper import UserHelper
+from utils.utils_users import UserHelper
 from utils.schemas import GradeReWrite
 from configs.config_system  import SYSTEM_CONFIG
 from logs.logger import set_logging_terminal

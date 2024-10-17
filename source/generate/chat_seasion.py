@@ -14,11 +14,8 @@ from source.router.router import decision_search_type, classify_product
 from source.retriever.elastic_search import search_db, classify_intent
 from source.similar_product.searcher import SimilarProductSearchEngine
 from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_CHATCHIT, PROMPT_ORDER
-from utils import GradeReWrite, UserHelper, timing_decorator, PostgreHandler
-from utils.utils_pipeline import HelperPiline
+from utils import GradeReWrite, UserHelper, timing_decorator, PostgreHandler, HelperPiline
 from configs.config_system import SYSTEM_CONFIG
-
-
 
 class Pipeline:
     def __init__(self):
@@ -28,8 +25,6 @@ class Pipeline:
         self.PIPELINE_HELPER = HelperPiline()  
         self.DB_LOGGER = PostgreHandler()   
         self.user_info = None
-    
-    
         
     def _execute_llm_call(self, llm, prompt, structured_output=None):
 
@@ -75,7 +70,7 @@ class Pipeline:
             )
         except Exception as e :
             logging.error("REWRITE QUERY ERROR: " + str(e))
-            response = {"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.", 
+            response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
                         "status": 500, 
                         "message": f"QUERY REWRITE ERR: {str(e)}"}
@@ -98,7 +93,7 @@ class Pipeline:
             response =  self._execute_llm_call(engine,  query)
             response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
         except Exception as e:
-            response = {"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.", 
+            response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
                         "status": 500, 
                         "message": f"SIMILARITY QUERY ERROR: {str(e)}"}
@@ -132,13 +127,12 @@ class Pipeline:
             response['product_confirms'] = self.PIPELINE_HELPER._product_confirms(output_from_llm=response['content'], query_rewritten=query, dataframe=all_product_data)
                 
         except Exception as e:
-            response = {"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.", 
+            response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
                         "status": 500, 
                         "message": f"Error processing request: {str(e)}"}
             logging.error("ORDER QUERY ERROR: " + str(e))
         return response 
-    
 
     def _handle_text_query(self, query: str) -> Dict[str, Any]:
         """
@@ -166,12 +160,13 @@ class Pipeline:
                 
                 specified_product_data  = pd.read_csv(os.path.join(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE, db_name + ".csv"))
                 response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], query_rewritten=query, dataframe=specified_product_data)
-        
+                response['product_name'] = db_name
+                
             response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
             response['total_token'] += result_classify['total_token']
             response['total_cost'] += result_classify['total_cost']
         except Exception as e:
-            response = {"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.", 
+            response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
                         "status": 500, 
                         "message": f"Error processing request: {str(e)}"}
@@ -198,10 +193,11 @@ class Pipeline:
             prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
             response = self._execute_llm_call(self.LLM_RAG, prompt.format(context=response_elastic, question=query, user_info=self.user_info))
             
+            response['product_name'] = '\n'.join(set(object.lower() for object in products_info[0]['object']))
             response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
             response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], query_rewritten= query, dataframe=pd.DataFrame(products_info))
         except Exception as e:
-            response = {"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.", 
+            response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
                         "status": 500, 
                         "message": f"Error processing request: {str(e)}"}
@@ -221,7 +217,7 @@ class Pipeline:
         Voice = None,
         Image =  None,
         UserInfor = None,
-    ) :
+    ):
         """
         Main function to interact with the user, process the query through the pipeline, and return an answer.
         Args:
@@ -237,13 +233,14 @@ class Pipeline:
         self.user_info = self.USER_HELPER.get_user_info(UserInfor['phone_number'])
 
         storage_info_output = {
+            "product_name": None,
             "products": [], "product_confirms": [], "terms": [], "content": "", "total_token": 0, 'total_cost': 0,
-            "status": 200, "message": "", "time_processing": None,
+            "status": 200, "message": None, "time_processing": None,
         }
         time_in = time.time()
         try:
             history_conversation = self.USER_HELPER.load_conversation(conv_user=UserInfor['phone_number'], id_request=IdRequest)
-            print("HISRORY", history_conversation)
+            # print("HISRORY", history_conversation)
             result_rewriten = self._rewrite_query(query=InputText, history=history_conversation)
             query_rewritten = result_rewriten['content']
             print("QUERY REWRITE:", query_rewritten)
@@ -270,6 +267,7 @@ class Pipeline:
             #     results['content'] += "<hr />🌟 Qúy khách đã sẵn sàng sở hữu sản phẩm tuyệt vời này chưa? Hãy bấm nút 'Mua hàng' ngay để  tiến hành thanh toán! 🛒✨. Viettel Construction xin chân thành cảm ơn !!"
             
             storage_info_output.update({
+                'product_name': results.get("product_name", None),
                 'content': results['content'],
                 'total_token': storage_info_output['total_token'] + results['total_token'],
                 'total_cost': storage_info_output['total_cost'] + results['total_cost'],
@@ -280,7 +278,7 @@ class Pipeline:
             self.USER_HELPER.save_conversation(phone_number=UserInfor['phone_number'], query=InputText, id_request=IdRequest, response=results['content'])
         
         except Exception as e:
-            storage_info_output.update({"content": "Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.",
+            storage_info_output.update({"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'],
                                         "status": 500, 
                                         "message": f"Error processing request in func CHAT SESSION: {str(e)}"})
             logging.error("CHAT SESSION ERROR: " + str(e))
@@ -288,20 +286,26 @@ class Pipeline:
         storage_info_output['time_processing'] = time.time() - time_in
         
         # Save log to database
-        self.DB_LOGGER.insert_data(
-            user_name=UserInfor['name'],
-            phone_number=UserInfor['phone_number'],
-            # object=None,
-            session_id=IdRequest,
-            human_chat=InputText,
-            bot_chat=storage_info_output['content'],
-            status=storage_info_output['status'],
-            total_token=storage_info_output['total_token'],
-            toal_cost=storage_info_output['total_cost'],
-            date_request=datetime.now().strftime("%A, %d %B %Y, %H:%M:%S"),
-            error_message=storage_info_output['message'],
-            time_request=storage_info_output['time_processing']
-        )
+        try:
+            self.DB_LOGGER.insert_data(
+                user_name=UserInfor['name'],
+                phone_number=UserInfor['phone_number'],
+                object_product=storage_info_output['product_name'],
+                name_bot=NameBot,
+                rewritten_human=query_rewritten,
+                session_id=IdRequest,
+                human=InputText,
+                ai=storage_info_output['content'],
+                status=storage_info_output['status'],
+                total_token=storage_info_output['total_token'],
+                toal_cost=storage_info_output['total_cost'],
+                date_request=datetime.now().strftime("%A, %d %B %Y, %H:%M:%S"),
+                error_message=storage_info_output['message'],
+                time_request=storage_info_output['time_processing']
+            )
+        except Exception as e:
+            logging.error("ERROR WHILE INSERT TO DATABSE: " + str(e))
+            
         return storage_info_output
 
 if __name__ == "__main__":

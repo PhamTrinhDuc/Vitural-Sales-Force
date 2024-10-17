@@ -33,7 +33,7 @@ def handle_request(
     start_time = time.time()
     results = {
         "products": [], 'product_confirms': [], "terms": [], "content": "",
-        "status": 200, "message": "", "time_processing": "",
+        "status": 200, "message": "", "time_processing": "", "end_message": SYSTEM_CONFIG.SYSTEM_MESSAGE['end_message'],
     }
     Users = {
         "phone_number": PhoneNumber,
@@ -53,7 +53,7 @@ def handle_request(
 
     except Exception as e:
         results['status'] = 500
-        results['content'] = 'Hệ thống hiện đang bảo trì, anh chị vui lòng quay lại sau.'
+        results['content'] = SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system']
         results['message'] = str(e)
 
     results['time_processing'] = f"{time.time() - start_time:.2f}s"
@@ -61,36 +61,25 @@ def handle_request(
 
 
 def handle_title_conversation(phone_number: None) -> dict:
-    data = {"data": [], "status": 200, "message": None}
-    try:
-        user_specific_conversation = os.path.join(SYSTEM_CONFIG.CONVERSATION_STORAGE, phone_number)
-        for session_path in os.listdir(user_specific_conversation):
-            session_conv_path = os.path.join(user_specific_conversation, session_path)
-            with open(session_conv_path, mode='r', encoding='utf-8') as f:
-                conversation = json.load(f)
-            session_id = list(conversation.keys())[0]
-            title = conversation[session_id][0]['human']
-            data['data'].append({"session_id": session_id, "title": title})
-        data['message'] = "Get conversation title successfull!"
-    except Exception as e:
-        data['status'] = 500
-        data['message'] = "Error - HANDLE TITLE CONVERSATION: " + str(e)
+    data = {"data": []}
+    user_specific_conversation = os.path.join(SYSTEM_CONFIG.CONVERSATION_STORAGE, phone_number)
+    for session_path in os.listdir(user_specific_conversation):
+        session_conv_path = os.path.join(user_specific_conversation, session_path)
+        with open(session_conv_path, mode='r', encoding='utf-8') as f:
+            conversation = json.load(f)
+        session_id = list(conversation.keys())[0]
+        title = conversation[session_id][0]['human']
         
+        data['data'].append({"session_id": session_id, "title": title})
     return data
 
 
-def handle_conversation(phone_number: None, session_id: None) -> dict:
-    data = {"data": None, "status": 200, "message": None}
-    try:
-        session_conv_path = os.path.join(SYSTEM_CONFIG.CONVERSATION_STORAGE, phone_number, session_id + '.json')
-        with open(session_conv_path, mode='r', encoding='utf-8') as f:
-                conversation = json.load(f)
-        
-        data['data'] = conversation[session_id]
-        data['message'] = "Get conversation successfull!"
-    except Exception as e:
-        data['status'] = 500
-        data['message'] = "Error - HANDLE CONVERSATION: " + str(e)
+def hanle_conversation(phone_number: None, session_id: None) -> dict:
+    session_conv_path = os.path.join(SYSTEM_CONFIG.CONVERSATION_STORAGE, phone_number, session_id + '.json')
+    with open(session_conv_path, mode='r', encoding='utf-8') as f:
+            conversation = json.load(f)
+    
+    data = {"data": conversation[session_id]}
     return data
 
 if __name__ == "__main__":
