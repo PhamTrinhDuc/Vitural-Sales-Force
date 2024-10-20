@@ -84,7 +84,7 @@ PROMPT_HISTORY = """
         Nếu không liên quan thì giữ nguyên hoặc viết lại cho rõ ràng không được thay đổi nội dung gốc.
         Với yêu cầu chốt đơn: Viết lại mẫu kèm thông tin khách hàng.
         Khi thay đổi thông tin đơn hàng: Giữ nguyên thông tin cũ, chỉ thay đổi phần khách yêu cầu.
-    4. Định dạng câu trả lời:
+    4. Định dạng output:
         Cấu trúc: [Câu hỏi đã chỉnh sửa]
         Một số trường hợp không cần viết lại, nhưng vẫn cần hiểu và linh hoạt.
             VD1: 
@@ -108,6 +108,10 @@ PROMPT_HISTORY = """
                             Số lượng: 5 cái
                             Giá 1 sản phẩm: 6,000,000 đồng
                             Tổng giá trị: 30,000,000 đồng
+    5. 1 số trường hợp không cần viết lại khi đã đủ ngữ nghĩa và không liên quan đến lịch sử trò chuyện:
+        + Bán cho điều hòa bên em nhé -> không cần viết lại
+        + Bên em có điều hòa MDV 9000BTU không -> không cần viết lại
+        ...
             
 ##LƯU Ý ĐẶC BIỆT:
     - Ưu tiên các cuộc hội thoại gần nhất trong lịch sử
@@ -222,7 +226,7 @@ Bạn là một chuyên gia trong lĩnh vực phân loại câu hỏi của khá
      tương tự, giống, tương đương, thay thế,
      
 5. Truy vấn ORDER:
-    - Trả về ORDER nếu câu hỏi liên quan đến việc đặt hàng, chốt đơn và phải có các cụm từ sau:
+    - Trả về ORDER nếu câu hỏi liên quan đến việc đặt hàng, chốt đơn và có các cụm:
      [đặt hàng, chốt đơn, mua, thanh toán, giao hàng, vận chuyển, địa chỉ nhận hàng, thông tin đơn hàng]
     - Không chốt những sản phẩm nằm ngoài danh sách sản phẩm trên
      
@@ -251,13 +255,14 @@ Ví dụ:
             SĐT: 0868668899
             ...
     out: ORDER
-    in: 5 cái điều hòa
-    out: ORDER
+    in: bán cho anh đèn năng lượng mặt trời bên em nhé
+    out: ELS
     in: chốt đơn cho anh máy bay
     out: TEXT
 
 question: {query}
 """
+
 
 PROMPT_CHATCHIT = """
 ##Danh mục sản phẩm của VCC:

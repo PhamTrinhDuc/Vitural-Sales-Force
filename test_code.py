@@ -4,7 +4,7 @@
 
 ######## TEST ELASTICSEARCH ########
 # from source.retriever.elastic_search import search_db, classify_intent
-# query = "cho tôi xem điều hòa bên bạn đi"
+# query = "top sản phẩm điều hòa bán chạy bên bạn"
 # demands = classify_intent(question=query)
 # response = search_db(demands=demands)
 # print(response[0])
@@ -35,7 +35,7 @@
 
 ######### TEST ROUTER ########
 # from source.router.router import decision_search_type
-# query = "Cho tôi xem tạm 3 sản phẩm điều hòa giá rẻ"
+# query = "bán tôi xem sản phẩm điều hòa MDV 2023 đang bán chạy"
 # type = decision_search_type(query=query)
 # print("Type:\n", type['content'])
 

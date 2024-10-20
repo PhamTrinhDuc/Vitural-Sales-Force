@@ -31,7 +31,7 @@ class ElasticHelper:
         # Define the mappings
         mappings = {
             "properties": {
-                "product_info_id": {"type": "text"},
+                "product_info_id": {"type": "integer"},
                 "group_product_name":{"type": "keyword"},
                 "product_code":{ "type":"text"},
                 "group_name": {"type": "text"},
@@ -39,13 +39,14 @@ class ElasticHelper:
                 "file_path": {"type" : "text"},
                 "short_description": {"type": "text"},
                 "specification": {"type": "text"},
+                "sold_quantity": {"type": "float"},
                 "power": {"type": "float"},
                 "weight": {"type": "float"},
                 "volume": {"type": "float"},
-                "lifecare_price": {"type": "float"},
-                "sold_quantity": {"type": "integer"},
+                "lifecare_price": {"type": "float"}
             }
         }
+
         # Create the index with mappings
         if not client.indices.exists(index=index_name):
             client.indices.create(index=index_name, body={"mappings": mappings})
@@ -60,11 +61,11 @@ class ElasticHelper:
                     "file_path": row["file_path"],
                     "short_description": row["short_description"],
                     "specification": row["specification"],
+                    "sold_quantity": row["sold_quantity"],
                     "power": row["power"],
                     "weight": row["weight"],
                     "volume": row["volume"],
-                    "lifecare_price": row["lifecare_price"],
-                    "sold_quantity": row["sold_quantity"]
+                    "lifecare_price": row["lifecare_price"]
                 }
                 client.index(index=index_name, id=i, document=doc)
 
