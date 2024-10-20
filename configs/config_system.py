@@ -15,20 +15,20 @@ class LoadConfig:
     LINK_SEVER = "https://allinonemobile.congtrinhviettel.com.vn/static"
 
     # POSTGRES CONFIG
-    POSTGRES_HOST = "10.248.243.162"
-    POSTGRES_DB_NAME = "ai_services"
-    POSTGRES_PASSWORD = "Vcc#2024#"
-    POSTGRES_USER = "ai_chatbot_admin"
-    POSTGRES_PORT = 5432
-    POSTGRE_TIMEOUT = 6
-
-    # POSTGRES CONFIG
-    # POSTGRES_HOST = "127.0.0.1"
-    # POSTGRES_DB_NAME = "chatbot"
-    # POSTGRES_PASSWORD = "duc8504@@"
-    # POSTGRES_USER = "postgres"
+    # POSTGRES_HOST = "10.248.243.162"
+    # POSTGRES_DB_NAME = "ai_services"
+    # POSTGRES_PASSWORD = "Vcc#2024#"
+    # POSTGRES_USER = "ai_chatbot_admin"
     # POSTGRES_PORT = 5432
     # POSTGRE_TIMEOUT = 6
+
+    # POSTGRES CONFIG
+    POSTGRES_HOST = "127.0.0.1"
+    POSTGRES_DB_NAME = "chatbot"
+    POSTGRES_PASSWORD = "duc8504@@"
+    POSTGRES_USER = "postgres"
+    POSTGRES_PORT = 5432
+    POSTGRE_TIMEOUT = 6
 
 
     # PARAMETER URL CONFIG
@@ -37,7 +37,7 @@ class LoadConfig:
 
     # ELASTIC_SEACH_CONFIG
     # INDEX_NAME = "chatbot_super_app_v2"
-    INDEX_NAME = "chatbot_super_app_custom"
+    INDEX_NAME = "chatbot_super_app_custom"    
     ELASTIC_URL =  'http://10.248.243.105:9200'
     NUM_SIZE_ELAS =  10
     QUANTITY_SPECIFICATIONS =  ['số lượng', 'bao nhiêu', 'mấy loại', 'số lượng sản phẩm', 'danh sách', 'tổng số', 'mấy', 'liệt kê số lượng', 'liệt kê', 'số lượng hiện còn', 'danh sách đang còn hàng']
@@ -46,7 +46,7 @@ class LoadConfig:
 
     # DIRECTORIES
     VECTOR_DATABASE_STORAGE = 'data/vector_db'
-    ALL_PRODUCT_FILE_CSV_STORAGE = 'data/data_private/data_final_superapp_custom.xlsx'
+    ALL_PRODUCT_FILE_CSV_STORAGE = 'data/data_private/data_final_superapp.xlsx'
     SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE = 'data/data_private/data_detail_superapp'
     SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE = 'data/data_private/data_text'
     SIMILAR_PRODUCT_STORAGE = 'data/data_private/data_dienmayxanh.csv'
@@ -112,7 +112,7 @@ class LoadConfig:
     ]
     
     SYSTEM_MESSAGE = {"error_system": "Đã có vấn đề xảy ra, anh/ chị vui lòng đặt lại câu hỏi để được hỗ trợ ạ!",
-                      "end_message": "Cảm ơn anh/chị đã quan tâm đến sản phẩm và dịch vụ của Viettel Construction. Nếu có bất kì thắc mắc hay câu hỏi xin vui lòng liên hệ đến tổng đài: 18009377.",
+                      "end_message": f"""Cảm ơn anh/chị đã quan tâm đến sản phẩm và dịch vụ của Viettel Construction. Nếu có bất kì thắc mắc hay câu hỏi xin vui lòng liên hệ đến tổng đài: <a href="tel:18009377">18009377</a>.""",
                       "question_other": "Hiện tại, bên em chưa có thông tin về câu hỏi này. Anh/ chị có thể liên hệ đến tổng đài: 18009377 để được tư vấn thêm & hỗ trợ. Em xin chân thành cảm ơn!"} # lỗi
     
 SYSTEM_CONFIG = LoadConfig()

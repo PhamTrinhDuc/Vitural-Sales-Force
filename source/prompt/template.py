@@ -84,8 +84,6 @@ PROMPT_HISTORY = """
         Nếu không liên quan thì giữ nguyên hoặc viết lại cho rõ ràng không được thay đổi nội dung gốc.
         Với yêu cầu chốt đơn: Viết lại mẫu kèm thông tin khách hàng.
         Khi thay đổi thông tin đơn hàng: Giữ nguyên thông tin cũ, chỉ thay đổi phần khách yêu cầu.
-        Khi chốt đơn sản phẩm mới: Sử dụng thông tin cá nhân đã nhập trước đó.
-        Để ý những từ như "anh không mua nữa", "đồng ý", "ok em", "được quá nhỉ", "ngoan đấy", "làm tốt lắm"... thì giữ nguyên theo ngữ cảnh.
     4. Định dạng câu trả lời:
         Cấu trúc: [Câu hỏi đã chỉnh sửa]
         Một số trường hợp không cần viết lại, nhưng vẫn cần hiểu và linh hoạt.
@@ -208,28 +206,29 @@ Bạn là một chuyên gia trong lĩnh vực phân loại câu hỏi của khá
     - Nếu sản phẩm khách hỏi ở ngoài danh sách dưới đây thì trả về TEXT:
      [bàn là, bàn ủi, bếp từ, bếp từ đôi, ấm đun nước, bình nước nóng, bình nước nóng, máy năng lượng mặt trời, công tắc, ổ cắm thông minh, bộ điều khiển thông minh, điều hòa, điều hòa daikin, điều hòa carrier, điều hòa MDV, đèn năng lượng mặt trời, đèn trụ cổng, đèn nlmt rời thể, đèn nlmt đĩa bay, bộ đèn led nlmt, đèn đường nlmt, đèn bàn chải nlmt, đèn sân vườn nlmt, ghế massage, lò vi sóng, lò nướng, nồi lẩu, máy giặt, máy lọc không khí, máy hút bụi, máy lọc nước, máy sấy quần áo, máy sấy tóc, máy xay, máy làm sữa hạt, máy ép, nồi áp suất, nồi chiên không dầu KALITE, Rapido, nồi cơm điện, robot hút bụi, thiết bị camera, camera ngoài trời, thiết bị gia dụng, nồi thủy tinh, máy ép chậm kalite, quạt sưởi không khí, tủ mát aqua, quạt điều hòa, máy làm sữa hạt, thiết bị webcam, bluetooth mic và loa, wifi, thiết bị định tuyến]
 2. Truy vấn ELS:
-    - Trả về ELS nếu câu hỏi liên quan đến các thông số sau của sản phẩm:
-     số lượng, giá cả, đắt nhất, rẻ nhất, lớn nhất, nhỏ nhất, công suất, dung tích, khối lượng, kích thước, trọng lượng.
+    - Trả về ELS nếu câu hỏi liên quan đến các thông số của sản phẩm:
+    + số lượng, giá cả, đắt nhất, rẻ nhất, lớn nhất, nhỏ nhất, công suất, dung tích, khối lượng, kích thước, trọng lượng, top sản phẩm bán chạy.
+    - Ngoài ra câu hỏi muốn đề xuất, hỏi chung về 1 sản phẩm thì trả về ELS
+
 3. Truy vấn TEXT:
     - Trả về TEXT cho tất cả các câu hỏi bao gồm:
-    - Câu hỏi về thông tin chung, giải thích, hướng dẫn sử dụng
-    - Yêu cầu tư vấn hoặc đề xuất sản phẩm
-    - Giảm giá, khuyến mãi, ưu đãi
-    - Thắc mắc về chính sách bảo hành, đổi trả
-    - Câu hỏi về tình trạng còn hàng hoặc hết hàng
+    + Câu hỏi về thông tin chung, giải thích, hướng dẫn sử dụng
+    + Giảm giá, khuyến mãi, ưu đãi
+    + Thắc mắc về chính sách bảo hành, đổi trả
+    + Câu hỏi về tình trạng còn hàng hoặc hết hàng
     
 4. Truy vấn SIMILARITY:
     - Trả về SIMILARITY|[tên sản phẩm] nếu khách hỏi về sản phẩm tương tự sản phẩm, hoặc chứa các cụm từ sau:
      tương tự, giống, tương đương, thay thế,
      
 5. Truy vấn ORDER:
-    - Trả về ORDER nếu câu hỏi liên quan đến việc đặt hàng, chốt đơn, hoặc chứa các cụm từ sau:
-     đặt hàng, chốt đơn, mua, thanh toán, giao hàng, vận chuyển, địa chỉ nhận hàng, thông tin đơn hàng
+    - Trả về ORDER nếu câu hỏi liên quan đến việc đặt hàng, chốt đơn và phải có các cụm từ sau:
+     [đặt hàng, chốt đơn, mua, thanh toán, giao hàng, vận chuyển, địa chỉ nhận hàng, thông tin đơn hàng]
     - Không chốt những sản phẩm nằm ngoài danh sách sản phẩm trên
      
 6. Truy vấn SIMILARITY:
     - Trả về SIMILARITY|[tên sản phẩm] nếu khách hỏi về sản phẩm tương tự sản phẩm, hoặc chứa các cụm từ sau:
-     tương tự, giống, tương đương, thay thế,
+     [tương tự, giống, tương đương, thay thế]
 Ví dụ:
     in: anh muốn xem sản phẩm giống điều hòa Daikin - 9000BTU
     out: SIMILARITY|điều hòa Daikin - 9000BTU
@@ -349,7 +348,7 @@ PROMPT_ORDER = """
 
     Bước 2: Chỉ khi có đầy đủ thông tin của mẫu chốt đơn mới được gửi ra mẫu:
     Lấy số lượng, mã sản phẩm trước đó đưa vào mẫu chốt đơn.
-    Liệt kê sản phẩm, số lượng, giá, mã sản phẩm, tính tổng giá trị.
+    Liệt kê sản phẩm, số lượng, giá, mã sản phẩm.
 
         Gửi mẫu chốt đơn:
             Thông tin đơn hàng:

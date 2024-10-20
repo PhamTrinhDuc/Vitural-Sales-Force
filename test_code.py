@@ -3,12 +3,11 @@
 
 
 ######## TEST ELASTICSEARCH ########
-# from source.retriever.elastic_search import search_db, classify_intent
-# query = "bán cho tao điều hòa giá rẻ"
-# demands = classify_intent(question=query)
-# print(demands)
-# response = search_db(demands=demands)
-# print(response[0])
+from source.retriever.elastic_search import search_db, classify_intent
+query = "cho tôi xem điều hòa bên bạn đi"
+demands = classify_intent(question=query)
+response = search_db(demands=demands)
+print(response[0])
 
 ####### TEST CHAT SEASION ########
 # from source.generate.chat_seasion import chat_interface
@@ -91,19 +90,19 @@
 # print(response)
 
 ######### TEST CHAT API CALL ########
-from source.generate.chat_seasion import Pipeline 
-from api.handle_request import handle_request
+# from source.generate.chat_seasion import Pipeline 
+# from api.handle_request import handle_request
 
-response = handle_request(
-    InputText = "tôi muốn chốt 5 cái cơ mà",
-    UserName="Hoàng",
-    IdRequest="9989",
-    PhoneNumber='0886945868',
-    Address='Hà Nội',
-    Voice = None,
-    Image=None,
-    NameBot=None)
-print(response)
+# response = handle_request(
+#     InputText = "bán cho tôi điều hòa bên bạn",
+#     UserName="Hiệp",
+#     IdRequest="9989",
+#     PhoneNumber='0886945868',
+#     Address='Hà Nội',
+#     Voice = None,
+#     Image=None,
+#     NameBot=None)
+# print(response)
 
 # from utils.user_helper import UserHelper
 # UserHelper().save_conversation(phone_number="0123456789", id_request="123", query="gmsdgsdm", response="sdmn")

@@ -86,6 +86,11 @@ def create_elasticsearch_query(product: str, product_name: str,
                 ]
                 value = _value
             query['query']['bool']['must'].append(create_filter_range(field, value))
+        else:
+            query['sort'] = [
+                {field: {"sold_quantity": "asc"}}
+            ]
+
     return query
 
 def bulk_search_products(client: Elasticsearch, queries: List[Dict]) -> List[Dict]:

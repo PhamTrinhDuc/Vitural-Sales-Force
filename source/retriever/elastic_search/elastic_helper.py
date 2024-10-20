@@ -14,13 +14,16 @@ dotenv.load_dotenv()
 class ElasticHelper:
     def __init__(self):
         pass
-    def init_elastic(self, df: pd.DataFrame, index_name: str = SYSTEM_CONFIG.INDEX_NAME) -> Elasticsearch:
+    def init_elastic(self, df: pd.DataFrame, 
+                     index_name: str = SYSTEM_CONFIG.INDEX_NAME) -> Elasticsearch:
         # Create the client instance
         # client = Elasticsearch(
         # # For local development
         # # hosts=["http://localhost:9200"]
         # hosts=[ELASTIC_HOST]
         # )
+        print("ELASTIC_CLOUD_ID:", os.getenv("ELASTIC_CLOUD_ID"))
+        print("ELASTIC_API_KEY:", os.getenv("ELASTIC_API_KEY"))
         client = Elasticsearch(
             cloud_id=os.getenv("ELASTIC_CLOUD_ID"),
             api_key=os.getenv("ELASTIC_API_KEY"),
@@ -39,10 +42,10 @@ class ElasticHelper:
                 "power": {"type": "float"},
                 "weight": {"type": "float"},
                 "volume": {"type": "float"},
-                "lifecare_price": {"type": "float"}
+                "lifecare_price": {"type": "float"},
+                "sold_quantity": {"type": "integer"},
             }
         }
-
         # Create the index with mappings
         if not client.indices.exists(index=index_name):
             client.indices.create(index=index_name, body={"mappings": mappings})
@@ -60,7 +63,8 @@ class ElasticHelper:
                     "power": row["power"],
                     "weight": row["weight"],
                     "volume": row["volume"],
-                    "lifecare_price": row["lifecare_price"]
+                    "lifecare_price": row["lifecare_price"],
+                    "sold_quantity": row["sold_quantity"]
                 }
                 client.index(index=index_name, id=i, document=doc)
 
