@@ -88,9 +88,9 @@ def create_elasticsearch_query(product: str, product_name: str,
             query['query']['bool']['must'].append(create_filter_range(field, value))
         else:
             query['sort'] = [
-                {field: {"sold_quantity": "asc"}}
+                {"sold_quantity": {"order": "desc"}}
             ]
-
+            value = ""
     return query
 
 def bulk_search_products(client: Elasticsearch, queries: List[Dict]) -> List[Dict]:
@@ -167,6 +167,8 @@ def search_db(demands: Dict)-> Tuple[str, List[Dict], int]:
 
 
 def format_product_output(index: int, product_details: Dict) -> str:
-    return (f"\n{index + 1}. *{product_details['product_name']} - ID: {product_details['product_info_id']}\n"
-            f"  Thông số sản phẩm: {product_details['specification']}\n"
-            f"  Giá tiền: {product_details['lifecare_price']:,.0f} đ*\n")
+    return f"""\n{index + 1}. {product_details['product_name']} 
+            - ID: {product_details['product_info_id']}"
+            - Số lượng bán: {product_details['sold_quantity']}"
+            - Thông số sản phẩm: {product_details['specification']}"
+            - Giá tiền: {product_details['lifecare_price']:,.0f} đ\n"""

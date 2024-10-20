@@ -74,7 +74,29 @@ class ElasticHelper:
             print(f"Index {index_name} already exists.")
 
         return client
+    
+    def check_specific_field(self, field_name: str):
 
+        client = Elasticsearch(
+            cloud_id=os.getenv("ELASTIC_CLOUD_ID"),
+            api_key=os.getenv("ELASTIC_API_KEY"),
+        )
+        query = {
+            "query": {
+                "exists": {
+                    "field": field_name
+                }
+            }
+        }
+        result = client.search(index=SYSTEM_CONFIG.INDEX_NAME, body=query, size=10)
+        if result:
+            print(result)
+            print(f"\nCác document có trường '{field_name}':")
+        else:
+            print(f"\nKhông có document nào có trường '{field_name}'")
+
+        count = client.count(index=SYSTEM_CONFIG.INDEX_NAME)['count']
+        print(f"\nSố lượng document trong index {SYSTEM_CONFIG.INDEX_NAME}: {count}")
 
     def parse_specification_range(self, specification: str) -> Tuple[float, float]:
         """

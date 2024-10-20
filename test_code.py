@@ -3,12 +3,15 @@
 
 
 ######## TEST ELASTICSEARCH ########
-from source.retriever.elastic_search import search_db, classify_intent
-query = "cho tôi xem điều hòa bên bạn đi"
-demands = classify_intent(question=query)
-response = search_db(demands=demands)
-print(response[0])
+# from source.retriever.elastic_search import search_db, classify_intent
+# query = "cho tôi xem điều hòa bên bạn đi"
+# demands = classify_intent(question=query)
+# response = search_db(demands=demands)
+# print(response[0])
 
+# from source.retriever.elastic_search.elastic_helper import ElasticHelper
+# es = ElasticHelper()
+# es.check_specific_field("sold_quantity")
 ####### TEST CHAT SEASION ########
 # from source.generate.chat_seasion import chat_interface
 # while True:
