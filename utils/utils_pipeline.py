@@ -3,7 +3,7 @@ import re
 import markdown
 import logging 
 import pandas as pd
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from ast import literal_eval
 from source.model.loader import ModelLoader
 
@@ -26,12 +26,17 @@ class HelperPiline:
     
     def _product_seeking(self, output_from_llm: str, query_rewritten: str,  dataframe: pd.DataFrame) -> List[Dict[str, Any]]:
         """
-        Get info product in output from llm.
+        Tìm kiếm sản phẩm dựa trên đầu ra từ mô hình ngôn ngữ và truy vấn đã được viết lại.
+        Hàm này duyệt qua từng hàng trong DataFrame và kiểm tra xem tên sản phẩm hoặc ID thông tin sản phẩm
+        có xuất hiện trong đầu ra từ mô hình ngôn ngữ hoặc truy vấn đã viết lại hay không. Nếu có, nó sẽ thêm
+        sản phẩm vào danh sách kết quả.
         Args:
-            - output_from_llm: output of llm.
-            - path_df: data frame constain list product
+            output_from_llm (str): Đầu ra từ mô hình ngôn ngữ.
+            query_rewritten (str): Truy vấn đã được viết lại.
+            dataframe (pd.DataFrame): DataFrame chứa thông tin sản phẩm.
         Returns:
-            - results: product information obtained
+            List[Dict[str, Any]]: Danh sách các sản phẩm tìm được, mỗi sản phẩm là một từ điển chứa ID sản phẩm,
+                                    tên sản phẩm và đường dẫn hình ảnh.
         """
         results = []
         try: 
@@ -48,17 +53,44 @@ class HelperPiline:
             logging.error("PRODUCT SEEKING ERROR: " + str(e))
             return results
     
+    def _extract_single_number(self, text: str, mode: str) -> Union[int, None]:
+        """
+        Trích xuất một số duy nhất từ chuỗi văn bản dựa trên chế độ được chỉ định.
+        Args:
+            text (str): Chuỗi văn bản chứa số cần trích xuất.
+            mode (str): Chế độ trích xuất, có thể là 'price' hoặc 'amount'.
+                - 'price': Trích xuất số dạng giá tiền, ví dụ: "1,234.56".
+                - 'amount': Trích xuất số dạng số lượng, ví dụ: "1234.56".
+        Returns:
+            int: Số được trích xuất từ chuỗi văn bản. Nếu không tìm thấy số, trả về None.
+        """
+        if mode == 'price':
+            pattern = r'(\d{1,3}(?:,\d{3})*(?:\.\d+)?)'
+            match = re.search(pattern, text)
+            if match:
+                number_str = match.group(1)
+                number = int(number_str.replace(',', ''))
+                return number
+        elif mode == 'amount':
+            pattern = r'\d+(?:\.\d+)?'
+            match = re.search(pattern, text)
+            
+            if match:
+                number = int(match.group())
+                return number
+        return None
     
     def _product_confirms(self, output_from_llm: str, query_rewritten: str, dataframe: pd.DataFrame) -> List[Dict[str, Any]]:
         """
-        Get info product in output from llm.
+        Trích xuất thông tin xác nhận sản phẩm từ đầu ra của mô hình ngôn ngữ và đối chiếu với DataFrame đã cho.
         Args:
-            - output_from_llm: output of llm.
-            - query_rewritten: rewritten query.
-            - dataframe: data frame containing list of products
+            output_from_llm (str): Chuỗi đầu ra từ mô hình ngôn ngữ chứa thông tin đơn hàng.
+            query_rewritten (str): Chuỗi truy vấn đã được viết lại.
+            dataframe (pd.DataFrame): DataFrame chứa thông tin sản phẩm với các cột 'product_name', 'product_info_id', và 'file_path'.
         Returns:
-            - results: product information obtained
+            List[Dict[str, Any]]: Danh sách các từ điển chứa thông tin sản phẩm được trích xuất như số lượng, giá, product_id, product_name, và link_image.
         """
+        
         llm = ModelLoader().load_rag_model()
         
         AMOUNT_PROMPT = """Lấy ra số lượng sản phẩm và giá sản phẩm khách đã chốt trong form đơn hàng:
@@ -83,9 +115,9 @@ class HelperPiline:
                 print("AMOUNT: ", amount)
                 print("PRICE: ", price)
                 if amount:
-                    results['amount'] = amount
+                    results['amount'] = self._extract_single_number(text=amount, mode='amount')
                 if price: 
-                    results['price'] = price
+                    results['price'] = self._extract_single_number(text=price, mode='price')
             else:
                 return results
             
@@ -103,25 +135,30 @@ class HelperPiline:
             return results
         
     def _format_to_HTML(self, markdown_text: str) -> str:
-        """Converts a given markdown text from output llm to HTML format.
-        Args:
-            markdown_text (str): The markdown text to be converted.
-        Returns:
-            str: The converted HTML text.
         """
+        Chuyển đổi văn bản Markdown thành HTML.
+        Args:
+            markdown_text (str): Văn bản Markdown cần chuyển đổi.
+        Returns:
+            str: Chuỗi HTML đã được chuyển đổi từ Markdown.
+        """
+        
         md = markdown.Markdown(extensions=['tables'])
         html_output = md.convert(markdown_text)
         return html_output
     
     def _double_check(self, question: str, dataframe: pd.DataFrame) -> str:
         """
-        Double check the product in question.
+        Kiểm tra lại thông tin sản phẩm trong câu hỏi dựa trên dữ liệu từ dataframe.
+        Hàm này sẽ duyệt qua từng hàng trong dataframe và kiểm tra xem tên sản phẩm hoặc ID sản phẩm
+        có xuất hiện trong câu hỏi hay không. Nếu có, thông tin về sản phẩm sẽ được thêm vào kết quả.
         Args:
-            - question: question from user.
-            - dataframe: data frame constain list product
+            question (str): Câu hỏi chứa thông tin cần kiểm tra.
+            dataframe (pd.DataFrame): DataFrame chứa dữ liệu sản phẩm.
         Returns:
-            - results: product information obtained
+            str: Chuỗi chứa thông tin về các sản phẩm phù hợp với câu hỏi.
         """
+        
         result = ""
         try: 
             for index, row in dataframe.iterrows():

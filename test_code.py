@@ -149,19 +149,3 @@
 # postgres_handle = PostgresHandle()
 # postgres_handle.create_table()
 # postgres_handle.connection.close()
-
-# import time
-# st = time.time()
-# from langchain_openai import ChatOpenAI
-# from langchain_community.callbacks import get_openai_callback
-
-# model = ChatOpenAI(api_key="sk-dTKKIChoB9Odh6JlFCbuaKpJVeojvF-FvhwP9x3aWCT3BlbkFJaeYHlewA30a4pENbXXSCl8qKU1KVuogMStcdmka00A")
-
-# with get_openai_callback() as cb:
-#     response = model.invoke("Hello").content
-# print(response)
-# print(type(cb.total_tokens))
-# print(type(cb.total_cost))
-
-# print(time.time() - st)
-
