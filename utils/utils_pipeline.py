@@ -92,7 +92,6 @@ class HelperPiline:
         """
         
         llm = ModelLoader().load_rag_model()
-        
         AMOUNT_PROMPT = """Lấy ra số lượng sản phẩm và giá sản phẩm khách đã chốt trong form đơn hàng:
         Ví dụ:
         Input:  <p>Thông tin đơn hàng:</p><ul>
@@ -106,8 +105,9 @@ class HelperPiline:
         From đơn hàng:
         {output_from_llm}
         Lưu ý: trả ra đúng format, không trả ra gì khác"""
+        results = []
         try: 
-            results = {}
+            result = {}
             response = llm.invoke(AMOUNT_PROMPT.format(output_from_llm=output_from_llm)).content
             if '|' in response:
                 amount = response.split("|")[0].strip()
@@ -115,20 +115,22 @@ class HelperPiline:
                 print("AMOUNT: ", amount)
                 print("PRICE: ", price)
                 if amount:
-                    results['amount'] = self._extract_single_number(text=amount, mode='amount')
+                    result['amount'] = self._extract_single_number(text=amount, mode='amount')
                 if price: 
-                    results['price'] = self._extract_single_number(text=price, mode='price')
+                    result['price'] = self._extract_single_number(text=price, mode='price')
             else:
-                return results
+                return result
             
             for index, row in dataframe.iterrows():
                 if any(str(item).lower() in output_from_llm.lower() or str(item).lower() in query_rewritten.lower() 
                        for item in (row['product_name'], row['product_info_id'])):
-                    results.update({
+                    result.update({
                         "product_id": row['product_info_id'],
                         "product_name": row['product_name'],
-                        "link_image": row['file_path']
+                        "link_image": row['file_path'],
+                        "product_code": row['product_code']
                     })
+                results.append(result)
             return results
         except Exception as e:
             logging.error("PRODUCT CONFIRMS ERROR: " + str(e))

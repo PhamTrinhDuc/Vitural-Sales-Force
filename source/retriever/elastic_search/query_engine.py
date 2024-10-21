@@ -83,11 +83,12 @@ def create_elasticsearch_query(product: str, product_name: str,
                 ]
                 value = _value
             query['query']['bool']['must'].append(create_filter_range(field, value))
-        else:
-            query['sort'] = [
-                {"sold_quantity": {"order": "desc"}}
-            ]
-            value = ""
+    if all([power, weight, volume]) == '' and len(price) <= 4:
+        query['sort'] = [
+            {"sold_quantity": {"order": "desc"}}
+        ]
+        value = ""
+    print(query)
     return query
 
 def bulk_search_products(client: Elasticsearch, queries: List[Dict]) -> List[Dict]:
@@ -138,8 +139,6 @@ def search_db(demands: Dict)-> Tuple[str, List[Dict], int]:
             product, product_name, demands.get('specifications'),
             price, demands.get('power'), demands.get('weight'), demands.get('volume')
         )
-        # print(query)
-
         queries.append(query)
     
     if not queries:

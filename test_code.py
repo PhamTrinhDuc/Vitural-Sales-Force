@@ -3,11 +3,11 @@
 
 
 ######## TEST ELASTICSEARCH ########
-# from source.retriever.elastic_search import search_db, classify_intent
-# query = "top sản phẩm điều hòa bán chạy bên bạn"
-# demands = classify_intent(question=query)
-# response = search_db(demands=demands)
-# print(response[0])
+from source.retriever.elastic_search import search_db, classify_intent
+query = "Điều hòa MDV 1 chiều 12000 BTU - Model 2023 đã bán được bao nhiêu sản phẩm?"
+demands = classify_intent(question=query)
+response = search_db(demands=demands)
+print(response[0])
 
 # from source.retriever.elastic_search.elastic_helper import ElasticHelper
 # es = ElasticHelper()
