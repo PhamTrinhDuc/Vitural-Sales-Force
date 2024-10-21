@@ -130,7 +130,7 @@ class HelperPiline:
                         "link_image": row['file_path'],
                         "product_code": row['product_code']
                     })
-                results.append(result)
+                    results.append(result)
             return results
         except Exception as e:
             logging.error("PRODUCT CONFIRMS ERROR: " + str(e))
