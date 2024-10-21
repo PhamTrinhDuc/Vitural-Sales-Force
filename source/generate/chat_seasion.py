@@ -249,10 +249,10 @@ class Pipeline:
 
             result_type = decision_search_type(result_rewriten['content'])
             search_type = result_type['content']
+            print("TYPE SEARCH:", search_type)
             storage_info_output['total_token'] += result_type['total_token']
             storage_info_output['total_cost'] += result_type['total_cost']
             
-            print("TYPE SEARCH:", search_type)
             if "SIMILARITY" in search_type: 
                 product_name = search_type.split("|")[1].strip()
                 results = self._handle_similarity_search(query_rewritten, product_name, self.user_info)

@@ -4,7 +4,7 @@
 
 ######## TEST ELASTICSEARCH ########
 from source.retriever.elastic_search import search_db, classify_intent
-query = "Điều hòa MDV 1 chiều 12000 BTU - Model 2023 đã bán được bao nhiêu sản phẩm?"
+query = "Điều hòa MDV 1 chiều 12000 BTU - Model 2023 bên bạn có không ?"
 demands = classify_intent(question=query)
 response = search_db(demands=demands)
 print(response[0])

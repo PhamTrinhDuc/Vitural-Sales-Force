@@ -88,7 +88,7 @@ def create_elasticsearch_query(product: str, product_name: str,
             {"sold_quantity": {"order": "desc"}}
         ]
         value = ""
-    print(query)
+    # print(query)
     return query
 
 def bulk_search_products(client: Elasticsearch, queries: List[Dict]) -> List[Dict]:
