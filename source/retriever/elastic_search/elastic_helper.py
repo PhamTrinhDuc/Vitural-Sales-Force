@@ -22,8 +22,9 @@ class ElasticHelper:
         # # hosts=["http://localhost:9200"]
         # hosts=[ELASTIC_HOST]
         # )
-        print("ELASTIC_CLOUD_ID:", os.getenv("ELASTIC_CLOUD_ID"))
-        print("ELASTIC_API_KEY:", os.getenv("ELASTIC_API_KEY"))
+        
+        # print("ELASTIC_CLOUD_ID:", os.getenv("ELASTIC_CLOUD_ID"))
+        # print("ELASTIC_API_KEY:", os.getenv("ELASTIC_API_KEY"))
         client = Elasticsearch(
             cloud_id=os.getenv("ELASTIC_CLOUD_ID"),
             api_key=os.getenv("ELASTIC_API_KEY"),
@@ -98,6 +99,30 @@ class ElasticHelper:
 
         count = client.count(index=SYSTEM_CONFIG.INDEX_NAME)['count']
         print(f"\nSố lượng document trong index {SYSTEM_CONFIG.INDEX_NAME}: {count}")
+    
+    def parse_string_to_dict(self, input_string: str) -> dict:
+        """
+            Nhận string từ function calling trả về, xử lí string và đưa về dạng dictionary chứa thông tin của các thông số kĩ thuật.
+            Dictionary này sẽ là đầu vào cho hàm search_db trong module_elastic/query_engine.py
+            Args:
+                - input_string: string trả về từ function calling
+            Return:
+                
+        """
+        try:
+            # Thay thế các giá trị rỗng bằng None để ast có thể xử lý
+            input_string = input_string.replace('""', 'None')
+            data_dict = ast.literal_eval(input_string)
+            
+            # Chuyển lại None thành chuỗi rỗng nếu cần
+            for key, value in data_dict.items():
+                if value is None:
+                    data_dict[key] = ""
+            
+            return data_dict
+        except (SyntaxError, ValueError) as e:
+            return f"Error: Invalid input string - {str(e)}"
+        
 
     def parse_specification_range(self, specification: str) -> Tuple[float, float]:
         """
@@ -140,34 +165,6 @@ class ElasticHelper:
             min_value = 0
         print('min_value, max_value:',min_value, max_value)
         return min_value, max_value
-
-
-    def parse_string_to_dict(self, input_string: str) -> Dict:
-        
-        """
-        Nhận string từ function calling trả về, xử lí string và đưa về dạng dictionary chứa thông tin của các thông số kĩ thuật.
-        Dictionary này sẽ là đầu vào cho hàm search_db trong module_elastic/query_engine.py
-        Args:
-            - input_string: string trả về từ function calling
-        Return:
-            - trả về dictionary chứa thông tin của các thông số kĩ thuật 
-        """
-
-        results = ast.literal_eval(input_string)
-        specifications_pairs = {'object': '', 'price': '', 'power': '', 'weight': '', 'volume': '', 'specifications': ''}
-        for key, value in results.items():
-            specifications_pairs[key] = value
-        
-        for key, value in specifications_pairs.items():
-            if key == 'object': # chuyển object thành list
-                specifications_pairs[key] = [x.strip() for x in value.split(',')]
-            if key == 'price': # chuyển price thành list
-                specifications_pairs[key] = [specifications_pairs[key]]
-
-        # Đưa price có số lượng bằng số lượng object
-        specifications_pairs['price'] = specifications_pairs['price'] * len(specifications_pairs['object']) if len(specifications_pairs['price']) == 1 else specifications_pairs['price']
-        return specifications_pairs
-
 
     def get_keywords(self, specification: str)-> Tuple[str, str, str]:
         """
