@@ -83,7 +83,7 @@ def create_elasticsearch_query(product: str, product_name: str,
                 ]
                 value = _value
             query['query']['bool']['must'].append(create_filter_range(field, value))
-    if all([power, weight, volume]) == '' and len(price) <= 4:
+    if all([power, weight, volume, price]) == '' :
         query['sort'] = [
             {"sold_quantity": {"order": "desc"}}
         ]
