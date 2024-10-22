@@ -80,8 +80,11 @@ class HelperPiline:
                 return number
         return None
     
-    def _product_confirms(self, output_from_llm: str, query_rewritten: str, dataframe: pd.DataFrame) -> List[Dict[str, Any]]:
+    def _product_confirms(self, output_from_llm: str, 
+                          query_rewritten: str, 
+                          dataframe: pd.DataFrame) -> List[Dict[str, Any]]:
         """
+
         Trích xuất thông tin xác nhận sản phẩm từ đầu ra của mô hình ngôn ngữ và đối chiếu với DataFrame đã cho.
         Args:
             output_from_llm (str): Chuỗi đầu ra từ mô hình ngôn ngữ chứa thông tin đơn hàng.
@@ -89,6 +92,7 @@ class HelperPiline:
             dataframe (pd.DataFrame): DataFrame chứa thông tin sản phẩm với các cột 'product_name', 'product_info_id', và 'file_path'.
         Returns:
             List[Dict[str, Any]]: Danh sách các từ điển chứa thông tin sản phẩm được trích xuất như số lượng, giá, product_id, product_name, và link_image.
+        
         """
         
         llm = ModelLoader().load_rag_model()
@@ -138,11 +142,13 @@ class HelperPiline:
         
     def _format_to_HTML(self, markdown_text: str) -> str:
         """
+        
         Chuyển đổi văn bản Markdown thành HTML.
         Args:
             markdown_text (str): Văn bản Markdown cần chuyển đổi.
         Returns:
             str: Chuỗi HTML đã được chuyển đổi từ Markdown.
+        
         """
         
         md = markdown.Markdown(extensions=['tables'])
@@ -151,6 +157,7 @@ class HelperPiline:
     
     def _double_check(self, question: str, dataframe: pd.DataFrame) -> str:
         """
+
         Kiểm tra lại thông tin sản phẩm trong câu hỏi dựa trên dữ liệu từ dataframe.
         Hàm này sẽ duyệt qua từng hàng trong dataframe và kiểm tra xem tên sản phẩm hoặc ID sản phẩm
         có xuất hiện trong câu hỏi hay không. Nếu có, thông tin về sản phẩm sẽ được thêm vào kết quả.
@@ -159,6 +166,7 @@ class HelperPiline:
             dataframe (pd.DataFrame): DataFrame chứa dữ liệu sản phẩm.
         Returns:
             str: Chuỗi chứa thông tin về các sản phẩm phù hợp với câu hỏi.
+        
         """
         
         result = ""
