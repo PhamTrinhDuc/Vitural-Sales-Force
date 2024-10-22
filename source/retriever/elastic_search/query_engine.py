@@ -7,10 +7,11 @@ from utils import timing_decorator
 from source.retriever.elastic_search import ElasticHelper
 from configs import SYSTEM_CONFIG
 
+
 NUMBER_SIZE_ELAS = SYSTEM_CONFIG.NUM_SIZE_ELAS
 DATAFRAME = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE)
 INDEX_NAME = SYSTEM_CONFIG.INDEX_NAME
-MATCH_THRESHOLD = 75
+MATCH_THRESHOLD = 60
 
 def create_filter_range(field: str, value: str) -> Dict:
     """
@@ -44,6 +45,7 @@ def create_elasticsearch_query(product: str, product_name: str,
 
     Hàm này tạo ra một truy vấn Elasticsearch phức tạp, bao gồm các điều kiện tìm kiếm
     và sắp xếp dựa trên các tham số được cung cấp.
+
     Args:
         product (str): Tên nhóm sản phẩm chính.
         product_name (str): Tên cụ thể của sản phẩm.
@@ -52,8 +54,10 @@ def create_elasticsearch_query(product: str, product_name: str,
         power (Optional[str]): Công suất sản phẩm, có thể bao gồm từ khóa sắp xếp.
         weight (Optional[str]): Trọng lượng sản phẩm, có thể bao gồm từ khóa sắp xếp.
         volume (Optional[str]): Thể tích sản phẩm, có thể bao gồm từ khóa sắp xếp.
+
     Returns:
         Dict: Một từ điển đại diện cho truy vấn Elasticsearch.
+
     Note:
         - Hàm này sử dụng hằng số NUMBER_SIZE_ELAS để giới hạn kích thước kết quả trả về.
         - Các tham số tùy chọn (price, power, weight, volume) có thể chứa các từ khóa
@@ -61,7 +65,6 @@ def create_elasticsearch_query(product: str, product_name: str,
         - Hàm get_keywords() được sử dụng để phân tích các từ khóa sắp xếp.
         - Hàm create_filter_range() được sử dụng để tạo bộ lọc phạm vi cho các trường số.
     """
-    
     query = {
         "query": {
             "bool": {
@@ -83,12 +86,13 @@ def create_elasticsearch_query(product: str, product_name: str,
                 ]
                 value = _value
             query['query']['bool']['must'].append(create_filter_range(field, value))
-    if all([power, weight, volume, price]) == '':
+    
+    if all(param == '' for param in (power, weight, volume, price)):
         query['sort'] = [
             {"sold_quantity": {"order": "desc"}}
         ]
         value = ""
-    # print(query)
+    print(query)
     return query
 
 def bulk_search_products(client: Elasticsearch, queries: List[Dict]) -> List[Dict]:
@@ -107,6 +111,7 @@ def bulk_search_products(client: Elasticsearch, queries: List[Dict]) -> List[Dic
     
     results = client.msearch(body=body)
     return results['responses']
+
 
 @timing_decorator
 def search_db(demands: Dict)-> Tuple[str, List[Dict], int]:
@@ -153,17 +158,18 @@ def search_db(demands: Dict)-> Tuple[str, List[Dict], int]:
             product_details = hit['_source']
             out_text += format_product_output(i, product_details)
             products_info.append({
+                'object': demands['object'],
                 "product_info_id": product_details['product_info_id'],
                 "product_name": product_details['product_name'],
-                "file_path": product_details['file_path']
+                "file_path": product_details['file_path'],
             })
-    # print(out_text)
+    # print("OUTPUT ELS:", out_text)
+    # print("=" * 100)
     return out_text, products_info
 
-
 def format_product_output(index: int, product_details: Dict) -> str:
-    return f"""\n{index + 1}. {product_details['product_name']} 
-            - ID: {product_details['product_info_id']}
-            - Số lượng bán: {product_details['sold_quantity']}
-            - Thông số sản phẩm: {product_details['specification']}
-            - Giá tiền: {product_details['lifecare_price']:,.0f} đ\n"""
+    return f"""\n{index + 1}. Tên: '{product_details['product_name']}' 
+    - Mã sản phẩm: {product_details['product_info_id']} 
+    - Giá: {product_details['lifecare_price']:,.0f} đ
+    - Số lượng đã bán: {product_details['sold_quantity']}
+    - Thông số : {product_details['specification']}\n"""

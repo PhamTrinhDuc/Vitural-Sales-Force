@@ -1,68 +1,105 @@
 import requests
 import pandas as pd
 import re
+from configs.config_system import LoadConfig
+
+CONFIG_SYSTEM = LoadConfig()
+
 
 # Hàm lấy dữ liệu từ API
-def get_superapp_data():
-    url = 'https://apis-public.congtrinhviettel.com.vn/aio/product/filterProduct'
-    headers = {'Content-Type': 'application/json'}
-    payload = {
+def get_superapp_data(code: str) -> pd.DataFrame:
+    url = "http://10.207.112.54:8808/aio/product/filterProductForAI"
+    headers = {
+        'x-api-key': 'VCC#SUPERAPP#UIHO',
+        'Content-Type': 'application/json'
+    }
+    data = {
         "dataRequest": {
             "keyWord": None,
             "brand": None,
             "productGroupIds": [],
-            "productBrandIds": []
+            "productBrandIds": [],
+            "unionGroupCode": code
         },
         "pageRequest": {
             "page": 0,
             "size": 300
         }
     }
+    try:
+        response = requests.post(url, headers=headers, json=data, timeout=30)
+        response.raise_for_status()
+        if response.status_code == 200:
+            response = response.json()
+            # Danh sách lưu thông tin sản phẩm
+            product_list = []
 
-    # Gọi API với phương thức POST
-    response = requests.post(url, headers=headers, json=payload)
-    # Kiểm tra xem API trả về kết quả thành công không
-    if response.status_code == 200:
-        data = response.json()
+            # Trích xuất các trường thông tin cần thiết
+            for product in data['data']['content']:
+                product_info = {
+                    'productId': product['productId'],
+                    'productGroupId': product['productGroupId'],
+                    'productName': product['productName'],
+                    'shortDescription': product['shortDescription'],
+                    'productCode': product['productCode'],
+                    'imgList': ", ".join(product['imgList']),  # Nối danh sách ảnh thành chuỗi
+                    'productDescription': product['productDescription'],
+                    'specifications': product['specifications'],
+                    'soldQuantity': product['soldQuantity'],
+                    'price': product['productPrice']['price']
+                }
+                product_list.append(product_info)
 
-        # Danh sách lưu thông tin sản phẩm
-        product_list = []
+            # Chuyển dữ liệu sang DataFrame
+            df = pd.DataFrame(product_list)
+            return df  # Di chuyển return vào trong if
+        else:
+            logging.info(f"GET CODE MEMBER: Lỗi khi gọi API: {response.status_code}")
+            return None  # Thêm return None khi có lỗi
 
-        # Trích xuất các trường thông tin cần thiết
-        for product in data['data']['content']:
-            product_info = {
-                'productId': product['productId'],
-                'productGroupId': product['productGroupId'],
-                'productName': product['productName'],
-                'shortDescription': product['shortDescription'],
-                'productCode': product['productCode'],
-                'imgList': ", ".join(product['imgList']),  # Nối danh sách ảnh thành chuỗi
-                'productDescription': product['productDescription'],
-                'specifications': product['specifications'],
-                'price': product['productPrice']['price']
-            }
-            product_list.append(product_info)
+    except requests.Timeout:
+        logging.info("GET CODE MEMBER: Yêu cầu đã vượt quá thời gian chờ")
 
-        # Chuyển dữ liệu sang DataFrame
-        df = pd.DataFrame(product_list)
-        return df  # Di chuyển return vào trong if
-    else:
-        print(f"Lỗi khi gọi API: {response.status_code}")
-        return None  # Thêm return None khi có lỗi
+    except requests.RequestException as e:
+        logging.info(f"GET CODE MEMBER: Đã xảy ra lỗi khi gửi yêu cầu: {str(e)}")
+
+    except json.JSONDecodeError:
+        logging.info("GET CODE MEMBER: Không thể giải mã phản hồi JSON")
+
+    except Exception as e:
+        logging.info(f"GET CODE MEMBER: Lỗi không mong đợi: {str(e)}")
+    return None
 
 # Class xử lý dữ liệu
 class DataProcessing:
     def __init__(self, data):
         self.df = pd.DataFrame(data)
         self.col = ['weight', 'volume', 'power']
+        self.data_adding()
         
     def data_adding(self):
         self.df['power'] = self.df['specifications'].apply(self.extract_power)
         self.df['weight'] = self.df['specifications'].apply(self.extract_weight)
         self.df['volume'] = self.df['specifications'].apply(self.extract_volume)
+        self.df['specifications'] = self.df['specifications'].apply(self.clean_html)
+        self.df['shortDescription'] = self.df['shortDescription'].apply(self.clean_html)
+        self.df['productDescription'] = self.df['productDescription'].apply(self.clean_html)
 
         self.df[self.col] = self.df[self.col].astype(float)
         self.df['productCode'] = self.df['productCode'].astype(str)
+    
+    def clean_html(self, html_text: str) -> str:
+        """
+        Xóa các thẻ html từ phần output của chatbot
+        Args:
+            html_text: str: phần trả lời của bot sau khi đã format sang html
+        Returns:
+            clean_text: str: phần trả lời của bot sau khi đã xóa các thẻ html
+        """
+        clean_text = re.sub(r'<[^>]+>', '', html_text)
+        clean_text = re.sub(r'\n+', '\n', clean_text)
+        clean_text = clean_text.strip()
+        return clean_text
     
     def extract_volume(self, description):
 
@@ -136,23 +173,24 @@ class DataProcessing:
 
         return weight_value
     
-# Function xử lý dữ liệu và lưu xuống Excel
+# Function xử lý dữ liệu cho từng member và lưu xuống Excel
 def process_data_and_save():
-    # Gọi API để lấy dữ liệu
-    data = get_superapp_data()
-    
-    if data is not None and not data.empty:
-        # Tạo đối tượng DataProcessing và xử lý dữ liệu
-        data_processor = DataProcessing(data)
-        data_processor.data_adding()
+    for code in SYSTEM_CONFIG.MEMBER_CODE:
+        # Gọi API để lấy dữ liệu
+        data = get_superapp_data(code)
         
-        data_processor.df = data_processor.df.sort_values(by='productGroupId')
-        # Lưu dữ liệu vào Excel
-        file_path = 'data/data_private/product_info_superapp.xlsx'
-        data_processor.df.to_excel(file_path, index=False)
-        print(f"Dữ liệu đã được lưu vào {file_path}")
-    else:
-        print("Không có dữ liệu để xử lý.")
+        if data is not None and not data.empty:
+            # Tạo đối tượng DataProcessing và xử lý dữ liệu
+            data_processor = DataProcessing(data)
+            
+            data_processor.df = data_processor.df.sort_values(by='productGroupId')
+            # Lưu dữ liệu vào Excel
+            file_path = f'data/data_private/product_superapp_{code_member}.xlsx'
+            data_processor.df.to_excel(file_path, index=False)
+            print(f"Dữ liệu đã được lưu vào {file_path}")
+        else:
+            print("Không có dữ liệu để xử lý.")
+
 
 if __name__ == "__main__":
     process_data_and_save()

@@ -1,7 +1,4 @@
 import gradio as gr
-from typing import Dict, Optional
-import random
-import time
 from configs import SYSTEM_CONFIG
 from api.handle_request import handle_request
 from source.generate.chat_seasion import Pipeline

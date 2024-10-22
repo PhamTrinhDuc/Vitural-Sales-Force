@@ -37,7 +37,7 @@ class LoadConfig:
 
     # ELASTIC_SEACH_CONFIG
     # INDEX_NAME = "chatbot_super_app_v2"
-    INDEX_NAME = "chatbot_super_app_custom"    
+    INDEX_NAME = "chatbot_v1"  
     ELASTIC_URL =  'http://10.248.243.105:9200'
     NUM_SIZE_ELAS =  10
     QUANTITY_SPECIFICATIONS =  ['số lượng', 'bao nhiêu', 'mấy loại', 'số lượng sản phẩm', 'danh sách', 'tổng số', 'mấy', 'liệt kê số lượng', 'liệt kê', 'số lượng hiện còn', 'danh sách đang còn hàng']

@@ -10,7 +10,7 @@ from configs import SYSTEM_CONFIG
 NUMBER_SIZE_ELAS = SYSTEM_CONFIG.NUM_SIZE_ELAS
 DATAFRAME = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE)
 INDEX_NAME = SYSTEM_CONFIG.INDEX_NAME
-MATCH_THRESHOLD = 75
+MATCH_THRESHOLD = 30
 
 def create_filter_range(field: str, value: str) -> Dict:
     """
@@ -83,7 +83,7 @@ def create_elasticsearch_query(product: str, product_name: str,
                 ]
                 value = _value
             query['query']['bool']['must'].append(create_filter_range(field, value))
-    if all([power, weight, volume, price]) == '' :
+    if all(param == '' for param in (power, weight, volume, price)):
         query['sort'] = [
             {"sold_quantity": {"order": "desc"}}
         ]
