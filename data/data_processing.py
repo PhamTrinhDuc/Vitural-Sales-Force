@@ -1,13 +1,15 @@
 import requests
 import pandas as pd
 import re
+import json
+import logging
 from configs.config_system import LoadConfig
 
 CONFIG_SYSTEM = LoadConfig()
 
 
 # Hàm lấy dữ liệu từ API
-def get_superapp_data(code: str) -> pd.DataFrame:
+def get_superapp_data(code_member: str) -> pd.DataFrame:
     url = "http://10.207.112.54:8808/aio/product/filterProductForAI"
     headers = {
         'x-api-key': 'VCC#SUPERAPP#UIHO',
@@ -19,7 +21,7 @@ def get_superapp_data(code: str) -> pd.DataFrame:
             "brand": None,
             "productGroupIds": [],
             "productBrandIds": [],
-            "unionGroupCode": code
+            "unionGroupCode": code_member
         },
         "pageRequest": {
             "page": 0,
@@ -56,16 +58,12 @@ def get_superapp_data(code: str) -> pd.DataFrame:
         else:
             logging.info(f"GET CODE MEMBER: Lỗi khi gọi API: {response.status_code}")
             return None  # Thêm return None khi có lỗi
-
     except requests.Timeout:
         logging.info("GET CODE MEMBER: Yêu cầu đã vượt quá thời gian chờ")
-
     except requests.RequestException as e:
         logging.info(f"GET CODE MEMBER: Đã xảy ra lỗi khi gửi yêu cầu: {str(e)}")
-
     except json.JSONDecodeError:
         logging.info("GET CODE MEMBER: Không thể giải mã phản hồi JSON")
-
     except Exception as e:
         logging.info(f"GET CODE MEMBER: Lỗi không mong đợi: {str(e)}")
     return None
@@ -135,11 +133,16 @@ class DataProcessing:
         power_w = re.findall(r'(\d+(?:[.,]\d+)?)\s*w\b', description, re.IGNORECASE)
         power_kw = re.findall(r'(\d+(?:[.,]\d+)?)\s*kw\b', description, re.IGNORECASE)
         power_vw = re.findall(r'(\d+(?:[.,]\d+)?)\s*v(?:/|\\| )?w\b', description, re.IGNORECASE)  # Dạng V/W
+        power_btu = re.findall(r'(\d+(?:[.,]\d+)?)\s*btu\b', description, re.IGNORECASE)  # Dạng BTU
 
         power_value = 0
 
+        # Nếu tìm thấy đơn vị BTU
+        if power_btu:
+            power_value = float(clean_number(power_btu[0]))
+        
         # Nếu tìm thấy đơn vị W (Watt)
-        if power_w:
+        elif power_w:
             power_value = float(clean_number(power_w[0]))
         
         # Nếu tìm thấy đơn vị kW (Kilowatt)
@@ -175,7 +178,7 @@ class DataProcessing:
     
 # Function xử lý dữ liệu cho từng member và lưu xuống Excel
 def process_data_and_save():
-    for code in SYSTEM_CONFIG.MEMBER_CODE:
+    for code in CONFIG_SYSTEM.MEMBER_CODE:
         # Gọi API để lấy dữ liệu
         data = get_superapp_data(code)
         
@@ -185,7 +188,7 @@ def process_data_and_save():
             
             data_processor.df = data_processor.df.sort_values(by='productGroupId')
             # Lưu dữ liệu vào Excel
-            file_path = f'data/data_private/product_superapp_{code_member}.xlsx'
+            file_path = f'data/data_private/product_superapp_{code}.xlsx'
             data_processor.df.to_excel(file_path, index=False)
             print(f"Dữ liệu đã được lưu vào {file_path}")
         else:

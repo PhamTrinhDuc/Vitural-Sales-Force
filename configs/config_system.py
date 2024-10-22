@@ -9,6 +9,9 @@ os.environ['OPENAI_API_KEY'] = os.getenv("OPENAI_API_KEY")
 # os.environ['TAVILY_API_KEY'] = os.getenv("TAVILY_API_KEY")
 
 class LoadConfig:
+    # API CONFIG
+    MEMBER_CODE = ['G-JLVIYR', 'G-XNAWVM', 'G-MIMWPJ', 'G-QAXOHL']
+    
     # SEVER CONFIG
     IP = "0.0.0.0"
     PORT = 7878
@@ -46,7 +49,7 @@ class LoadConfig:
 
     # DIRECTORIES
     VECTOR_DATABASE_STORAGE = 'data/vector_db'
-    ALL_PRODUCT_FILE_CSV_STORAGE = 'data/data_private/data_final_superapp.xlsx'
+    ALL_PRODUCT_FILE_CSV_STORAGE = 'data/data_private/data_final_superappv10.xlsx'
     SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE = 'data/data_private/data_detail_superapp'
     SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE = 'data/data_private/data_text'
     SIMILAR_PRODUCT_STORAGE = 'data/data_private/data_dienmayxanh.csv'

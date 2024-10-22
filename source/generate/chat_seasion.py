@@ -1,5 +1,4 @@
 import os
-import re
 import time
 import logging
 import pandas as pd
@@ -18,10 +17,8 @@ from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_CHATCHI
 from utils import GradeReWrite, UserHelper, timing_decorator, PostgreHandler, HelperPiline
 from configs.config_system import SYSTEM_CONFIG
 
-
 cache = InMemoryCache()
 set_llm_cache(cache)
-
 
 class Pipeline:
     def __init__(self):
@@ -34,7 +31,9 @@ class Pipeline:
         
     def _execute_llm_call(self, llm, prompt, structured_output=None):
 
-        """Executes a call to a language model (LLM) with the given prompt and optional structured output.
+        """
+        
+        Executes a call to a language model (LLM) with the given prompt and optional structured output.
         Args:
             llm: OpenAI: The language model instance to be called.
             prompt (str): The input prompt to be sent to the LLM.
@@ -44,6 +43,7 @@ class Pipeline:
             - "content": The content of the LLM response.
             - "total_token": The total number of tokens used in the LLM call.
             - "cost": The total cost of the LLM call.
+
         """
         with get_openai_callback() as cb:
             if structured_output:
@@ -59,6 +59,7 @@ class Pipeline:
     
     def _rewrite_query(self, query: str, history: list) -> Dict[str, Any]:
         """
+
         Rewrite the user query based on chat history.
 
         Args:
@@ -67,6 +68,7 @@ class Pipeline:
 
         Returns:
             str: The rewritten query.
+
         """
         try:
             return self._execute_llm_call(
@@ -82,9 +84,9 @@ class Pipeline:
                         "message": f"QUERY REWRITE ERR: {str(e)}"}
             return response
 
-
     def _handle_similarity_search(self, query: str, product_name: str, user_info: Dict[str, Any]) -> Dict[str, Any]:
         """
+
         Handle similarity-based product search.
 
         Args:
@@ -93,6 +95,7 @@ class Pipeline:
 
         Returns:
             Dict[str, Any]: The search results and token usage.
+
         """
         try:
             engine = SimilarProductSearchEngine(product_find=product_name, user_info=user_info)
@@ -105,9 +108,9 @@ class Pipeline:
                         "message": f"SIMILARITY QUERY ERROR: {str(e)}"}
         return response
 
-
     def _handle_order_query(self, query: str) -> Dict[str, Any]:
         """
+
         Handles an order query by generating a response using a language model and processing the response.
         Args:
             query (str): The order query string.
@@ -142,6 +145,7 @@ class Pipeline:
 
     def _handle_text_query(self, query: str) -> Dict[str, Any]:
         """
+
         Handle text-based queries.
 
         Args:
@@ -150,6 +154,7 @@ class Pipeline:
 
         Returns:
             Dict[str, Any]: The response and token usage.
+        
         """
         result_classify = classify_product(query=query)
         product_id = result_classify['content']
@@ -177,12 +182,11 @@ class Pipeline:
                         "status": 500, 
                         "message": f"Error processing request: {str(e)}"}
             logging.error("TEXT QUERY ERROR: " + str(e))
-
         return response
-
 
     def _handle_elastic_search(self, query: str) -> Dict[str, Any]:
         """
+
         Handle queries using elastic search.
 
         Args:
@@ -191,6 +195,7 @@ class Pipeline:
 
         Returns:
             Dict[str, Any]: The response and product information and token usage.
+        
         """
         try:
             demands = classify_intent(query)
@@ -207,13 +212,10 @@ class Pipeline:
                         "total_token": 0, 'total_cost': 0,
                         "status": 500, 
                         "message": f"Error processing request: {str(e)}"}
-            
             logging.error("ELASTIC SEARCH QUERY ERROR: " + str(e))
-
         return response
 
     # Main function
-
     @timing_decorator
     def chat_session(
         self,
@@ -225,6 +227,7 @@ class Pipeline:
         UserInfor = None,
     ):
         """
+
         Main function to interact with the user, process the query through the pipeline, and return an answer.
         Args:
             InputText (Optional[str]): The user's query.
@@ -234,6 +237,7 @@ class Pipeline:
             image (Optional[Any]): Image data (if applicable).
         Returns:
             Dict[str, Any]: A dictionary containing the response and related information.
+        
         """
         self.USER_HELPER.save_users(UserInfor)
         self.user_info = self.USER_HELPER.get_user_info(UserInfor['phone_number'])
