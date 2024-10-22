@@ -4,8 +4,9 @@ import markdown
 import logging 
 import pandas as pd
 from typing import List, Dict, Any, Union
-from ast import literal_eval
 from source.model.loader import ModelLoader
+
+
 
 class HelperPiline:
     def __init__(self):
@@ -150,7 +151,6 @@ class HelperPiline:
             str: Chuỗi HTML đã được chuyển đổi từ Markdown.
         
         """
-        
         md = markdown.Markdown(extensions=['tables'])
         html_output = md.convert(markdown_text)
         return html_output
