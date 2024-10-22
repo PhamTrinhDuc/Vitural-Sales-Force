@@ -9,13 +9,13 @@
 # response = search_db(demands=demands)
 # print(response[0])
 
-from source.retriever.elastic_search.extract_specifications import extract_info
-from source.retriever.elastic_search.query_engine_cp import search_db
+# from source.retriever.elastic_search.extract_specifications import extract_info
+# from source.retriever.elastic_search.query_engine_cp import search_db
 
-query = "Điều hòa MDV 1 chiều 12000 BTU - Model 2023 bên bạn có không ?"
-demands = extract_info(query=query)
-response = search_db(demands=demands)
-print(response[0])
+# query = "Điều hòa MDV 1 chiều 12000 BTU - Model 2023 bên bạn có không ?"
+# demands = extract_info(query=query)
+# response = search_db(demands=demands)
+# print(response[0])
 
 # from source.retriever.elastic_search.elastic_helper import ElasticHelper
 # es = ElasticHelper()
@@ -95,10 +95,10 @@ print(response[0])
 
 
 ######### TEST CHAT CLS PRODUCT ########
-# from source.generate.chat import classify_product
-# query = "điều hòa giá 10 triệu"
-# response = classify_product(query=query)
-# print(response)
+from source.router.router import classify_product
+query = "điều hòa giá 10 triệu"
+response = classify_product(query=query)
+print(response)
 
 ######### TEST CHAT API CALL ########
 # from source.generate.chat_seasion import Pipeline 

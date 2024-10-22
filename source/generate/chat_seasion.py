@@ -5,8 +5,9 @@ import logging
 import pandas as pd
 from datetime import datetime
 from typing import Dict, Any, List
+from langchain_core.globals import set_llm_cache
 from langchain_core.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_core.caches import InMemoryCache
 from source.model.loader import ModelLoader
 from langchain_community.callbacks.manager import get_openai_callback
 from source.retriever.chroma.retriever import Retriever
@@ -16,6 +17,11 @@ from source.similar_product.searcher import SimilarProductSearchEngine
 from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_CHATCHIT, PROMPT_ORDER
 from utils import GradeReWrite, UserHelper, timing_decorator, PostgreHandler, HelperPiline
 from configs.config_system import SYSTEM_CONFIG
+
+
+cache = InMemoryCache()
+set_llm_cache(cache)
+
 
 class Pipeline:
     def __init__(self):
@@ -193,7 +199,7 @@ class Pipeline:
             prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
             response = self._execute_llm_call(self.LLM_RAG, prompt.format(context=response_elastic, question=query, user_info=self.user_info))
             
-            response['product_name'] = '\n'.join(set(object.lower() for object in products_info[0]['object']))
+            response['product_name'] = demands['object']
             response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
             response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], query_rewritten= query, dataframe=pd.DataFrame(products_info))
         except Exception as e:
