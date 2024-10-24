@@ -14,7 +14,8 @@ class UserHelper:
         os.makedirs(self.CONVERSATION_PATH, exist_ok=True)
         os.makedirs(self.INFO_USER_PATH, exist_ok=True)
         
-    def _clean_html(self, html_text: str) -> str:
+    @staticmethod
+    def _clean_html(html_text: str) -> str:
         """
         Xóa các thẻ html từ phần output của chatbot
         Args:

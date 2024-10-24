@@ -9,13 +9,13 @@
 # response = search_db(demands=demands)
 # print(response[0])
 
-from source.retriever.elastic_search.extract_specifications import extract_info
-from source.retriever.elastic_search.query_engine_cp import search_db
+# from source.retriever.elastic_search.extract_specifications import extract_info
+# from source.retriever.elastic_search.query_engine_cp import search_db
 
-query = "Điều hòa MDV 1 chiều 12000 BTU - Model 2023 bên bạn có không ?"
-demands = extract_info(query=query)
-response = search_db(demands=demands)
-print(response[0])
+# query = "Điều hòa MDV 1 chiều 12000 BTU - Model 2023 bên bạn có không ?"
+# demands = extract_info(query=query)
+# response = search_db(demands=demands)
+# print(response[0])
 
 # from source.retriever.elastic_search.elastic_helper import ElasticHelper
 # es = ElasticHelper()
@@ -157,3 +157,15 @@ print(response[0])
 # postgres_handle = PostgresHandle()
 # postgres_handle.create_table()
 # postgres_handle.connection.close()
+
+# from source.data_processor.run import process_data_and_save
+# from source.data_processor.clone_data import download_superapp_data
+
+# df = download_superapp_data(code_member="G-JLVIYR")
+# print(df.head())    
+# # process_data_and_save()
+
+from source.data_processor.run import DataProcessingPipeline
+
+pipeline = DataProcessingPipeline()
+pipeline.processing()

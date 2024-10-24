@@ -11,8 +11,9 @@ from source.model.loader import ModelLoader
 class HelperPiline:
     def __init__(self):
         pass
-    
-    def _clean_html(self, html_text: str) -> str:
+
+    @staticmethod
+    def _clean_html(html_text: str) -> str:
         """
         Xóa các thẻ html từ phần output của chatbot
         Args:
@@ -25,7 +26,8 @@ class HelperPiline:
         clean_text = clean_text.strip()
         return clean_text
     
-    def _product_seeking(self, output_from_llm: str, query_rewritten: str,  dataframe: pd.DataFrame) -> List[Dict[str, Any]]:
+    @staticmethod
+    def _product_seeking(output_from_llm: str, query_rewritten: str,  dataframe: pd.DataFrame) -> List[Dict[str, Any]]:
         """
         Tìm kiếm sản phẩm dựa trên đầu ra từ mô hình ngôn ngữ và truy vấn đã được viết lại.
         Hàm này duyệt qua từng hàng trong DataFrame và kiểm tra xem tên sản phẩm hoặc ID thông tin sản phẩm
@@ -54,7 +56,8 @@ class HelperPiline:
             logging.error("PRODUCT SEEKING ERROR: " + str(e))
             return results
     
-    def _extract_single_number(self, text: str, mode: str) -> Union[int, None]:
+    @staticmethod
+    def _extract_single_number(text: str, mode: str) -> Union[int, None]:
         """
         Trích xuất một số duy nhất từ chuỗi văn bản dựa trên chế độ được chỉ định.
         Args:
@@ -81,7 +84,8 @@ class HelperPiline:
                 return number
         return None
     
-    def _product_confirms(self, output_from_llm: str, 
+    def _product_confirms(self, 
+                          output_from_llm: str, 
                           query_rewritten: str, 
                           dataframe: pd.DataFrame) -> List[Dict[str, Any]]:
         """
@@ -140,8 +144,9 @@ class HelperPiline:
         except Exception as e:
             logging.error("PRODUCT CONFIRMS ERROR: " + str(e))
             return results
-        
-    def _format_to_HTML(self, markdown_text: str) -> str:
+    
+    @staticmethod
+    def _format_to_HTML(markdown_text: str) -> str:
         """
         
         Chuyển đổi văn bản Markdown thành HTML.
@@ -154,8 +159,9 @@ class HelperPiline:
         md = markdown.Markdown(extensions=['tables'])
         html_output = md.convert(markdown_text)
         return html_output
-    
-    def _double_check(self, question: str, dataframe: pd.DataFrame) -> str:
+
+    @staticmethod
+    def _double_check(question: str, dataframe: pd.DataFrame) -> str:
         """
 
         Kiểm tra lại thông tin sản phẩm trong câu hỏi dựa trên dữ liệu từ dataframe.

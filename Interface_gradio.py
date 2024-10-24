@@ -5,7 +5,7 @@ from source.generate.chat_seasion import Pipeline
 
 class ChatBot:
     def __init__(self):
-        self.pipeline = Pipeline()
+        self.pipeline = Pipeline(code_member="NORMAL")
         self.chat_history = []
 
     def chat(self, message, history, id_request, name_bot, user_name, image, voice, phone_number, address):
@@ -57,11 +57,11 @@ with gr.Blocks(css="#chatbot {height: 400px; overflow: auto;}") as demo:
             clear = gr.Button("Clear Chat")
         
         with gr.Column(scale=1):
-            user_name = gr.Textbox(label="User Name")
-            phone_number = gr.Textbox(label="Phone Number")
-            address = gr.Textbox(label="Address")
-            id_request = gr.Textbox(label="ID Request")
-            name_bot = gr.Textbox(label="Bot Name")
+            user_name = gr.Textbox(label="User Name", placeholder="Enter your name", value="Phạm Đức")
+            phone_number = gr.Textbox(label="Phone Number", placeholder="Enter your phone number", value="0987654321")
+            address = gr.Textbox(label="Address", placeholder="Enter your address", value="Hà Nội")
+            id_request = gr.Textbox(label="ID Request", placeholder="Enter your ID Request", value="1436909309")
+            name_bot = gr.Textbox(label="Bot Name", placeholder="Enter your bot name", value="SuperApp")
             image = gr.Textbox(label="Image")
             voice = gr.Textbox(label="Voice")
 

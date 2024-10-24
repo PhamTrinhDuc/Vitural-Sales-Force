@@ -1,132 +1,153 @@
 import os
 import dotenv
 from typing import List, Tuple, Optional
+from dataclasses import dataclass
 from langchain_core.documents import Document
 from langchain_community.vectorstores import Chroma
 from langchain.retrievers import EnsembleRetriever
 from langchain_community.retrievers import BM25Retriever
 from langchain_openai import OpenAIEmbeddings
-from langchain.retrievers import EnsembleRetriever
 from utils import timing_decorator
-from source.ingest_data.ingestion import IngestBuilder
-from source.model.loader import ModelLoader
+from ...ingest_data.ingestion import IngestBuilder
+from ...model.loader import ModelLoader
 from configs import SYSTEM_CONFIG
 
 dotenv.load_dotenv()
 
+@dataclass
+class RetrieverConfig:
+    """Configuration for Retriever"""
+    text_data_path: str = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE
+    vector_db_path: str = SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE
+    top_k_products: int = SYSTEM_CONFIG.TOP_K_PRODUCT
+    num_products: int = SYSTEM_CONFIG.NUM_PRODUCT
+
+class DocumentManager:
+    """Manages document operations and storage"""
+    
+    def __init__(self, config: RetrieverConfig):
+        self.config = config
+    
+    def ensure_directories(self, code_member: str) -> None:
+        """Ensure necessary directories exist"""
+        os.makedirs(self.config.vector_db_path.format(code_member=code_member), exist_ok=True)
+        os.makedirs(self.config.text_data_path.format(code_member=code_member), exist_ok=True)
+    
+    def needs_embedding(self, code_member: str) -> bool:
+        """Check if documents need to be embedded"""
+        return len(os.listdir(self.config.vector_db_path.format(code_member=code_member))) < self.config.num_products
+
+    def get_document_paths(self, product_name: str) -> Tuple[str, str]:
+        """Get file and database paths for a product"""
+        file_path = os.path.join(self.config.text_data_path, f"{product_name}.pkl")
+        db_path = os.path.join(self.config.vector_db_path, product_name)
+        return file_path, db_path
+
+class VectorDBHandler:
+    """Handles vector database operations"""
+    
+    def __init__(self, embedding_model: Optional[OpenAIEmbeddings] = None):
+        self.embedding_model = embedding_model or ModelLoader().load_embed_openai_model()
+    
+    def create_or_load_db(self, documents: List[Document], db_path: str) -> Chroma:
+        """Create new vector database or load existing one"""
+        if not os.path.exists(db_path):
+            return Chroma.from_documents(
+                documents=documents,
+                embedding=self.embedding_model,
+                persist_directory=db_path
+            )
+        return Chroma(
+            persist_directory=db_path,
+            embedding_function=self.embedding_model
+        )
+
+class RetrieverBuilder:
+    """Builds and configures retrievers"""
+    
+    def __init__(self, config: RetrieverConfig):
+        self.config = config
+    
+    def build_ensemble_retriever(self, vector_db: Chroma, documents: List[Document]) -> EnsembleRetriever:
+        """Build ensemble retriever combining BM25 and vector similarity"""
+        bm25_retriever = self._create_bm25_retriever(documents)
+        vanilla_retriever = self._create_vanilla_retriever(vector_db)
+        
+        return EnsembleRetriever(
+            retrievers=[vanilla_retriever, bm25_retriever],
+            weights=[0.5, 0.5]
+        )
+    
+    def _create_bm25_retriever(self, documents: List[Document]) -> BM25Retriever:
+        """Create BM25 retriever"""
+        retriever = BM25Retriever.from_documents(documents)
+        retriever.k = self.config.top_k_products
+        return retriever
+    
+    def _create_vanilla_retriever(self, vector_db: Chroma):
+        """Create vanilla vector similarity retriever"""
+        return vector_db.as_retriever(
+            search_type="similarity",
+            search_kwargs={"k": self.config.top_k_products}
+        )
+
 class Retriever:
-    def __init__(self):
-        os.makedirs(SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE, exist_ok=True)
-        os.makedirs(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE, exist_ok=True)
-        if len(os.listdir(SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE)) < SYSTEM_CONFIG.NUM_PRODUCT:
-            self.embedding_all_document()
-
-    def embedding_all_document(self,
-                               data_specific_folder_txt_path: Optional[str] = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE,
-                               db_store_folder_path: Optional[str] = SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE,
-                               embedding_model: Optional[OpenAIEmbeddings] = ModelLoader().load_embed_openai_model()):
+    """Main retriever class coordinating document retrieval operations"""
+    
+    def __init__(self, 
+                 code_member: str, 
+                 config: Optional[RetrieverConfig] = None):
         
-        for file_name in os.listdir(data_specific_folder_txt_path):
-            product_name = file_name.split(".")[0]
-            file_path = os.path.join(data_specific_folder_txt_path, product_name + ".pkl")
-            db_path = os.path.join(db_store_folder_path, product_name)
-            data_chunked = IngestBuilder().load_document_chunked(file_path)
-            db = Chroma.from_documents(documents=data_chunked, 
-                                  embedding=embedding_model,
-                                  persist_directory=db_path)
-
-    def initialize_database_embedding(self,
-                                      product_name: str,
-                                      data_specific_folder_txt_path: Optional[str] = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE,
-                                      db_store_folder_path: Optional[str] = SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE,
-                                      embedding_model: Optional[OpenAIEmbeddings] = ModelLoader().load_embed_openai_model()) -> Tuple[list, Chroma, int]:
+        self.config = config or RetrieverConfig()
+        self.doc_manager = DocumentManager(self.config)
+        self.vector_handler = VectorDBHandler()
+        self.retriever_builder = RetrieverBuilder(self.config)
         
-        """
-        Load data được chunk của từng sản phẩm, embedding các chunk và lưu vào Chroma
-        
-        Args:
-            csv_prodquct: đường dẫn file csv chứa thông tin sản phẩm
-            xlsx_fqa: đường dẫn file xlsx chứa câu hỏi thường gặp
-            vecto_db_path: đường dẫn lưu vector embedding cho từng sản phẩm 
-            embedding_model: model embedding
-        
-        Returns:
-            data_chunked: data sau khi được chunk
-            vectordb: database lưu các vector data 
-        """
-
-        file_path = os.path.join(data_specific_folder_txt_path, product_name + ".pkl")
-        db_path = os.path.join(db_store_folder_path, product_name)
-        data_chunked = IngestBuilder().load_document_chunked(file_path)
-
-
-        if not db_path:
-            vectordb = Chroma.from_documents(documents=data_chunked, 
-                                                embedding=embedding_model,
-                                                persist_directory=db_path)
-        else:
-            vectordb = Chroma(persist_directory=db_path, 
-                                embedding_function=embedding_model)
-        return data_chunked, vectordb
-
-    def initialize_retriever(
-        self,
-        vector_db: Chroma,
-        data_chunked: List[Document]) -> EnsembleRetriever:
-
-        """
-        Khởi tạo retriver để tìm kiếm context từ câu hỏi người dùng
-        
-        Arg: 
-            vector db: vector db(Chroma) được khỏi tạo trong file create_db.py
-            data_chunked: data được chunk (file từng sản phẩm hoặc file tất cả sản phẩm)
-        
-        Return:
-            trả về  ensemble retriever kết hợp reranker 
-        """
-
-        # initialize the bm25 retriever
-        retriever_BM25 = BM25Retriever.from_documents(data_chunked)
-        retriever_BM25.k = SYSTEM_CONFIG.TOP_K_PRODUCT
-
-        retriever_vanilla = vector_db.as_retriever(search_type="similarity", 
-                                                    search_kwargs={"k": SYSTEM_CONFIG.TOP_K_PRODUCT})
-        
-        # initialize the ensemble retriever with 2 Retrievers
-        ensemble_retriever = EnsembleRetriever(
-            retrievers=[retriever_vanilla, retriever_BM25], 
-            weights=[0.5, 0.5])
-        # rerank with cohere
-        # compressor = CohereRerank(top_n=top_k)
-        # compression_retriever = ContextualCompressionRetriever(
-        #     base_compressor=compressor, 
-        #     base_retriever=ensemble_retriever
-        # )
-        return ensemble_retriever
-
+        # Initialize system
+        self._initialize_system(code_member)
+    
+    def _initialize_system(self, code_member: str) -> None:
+        """Initialize the retrieval system"""
+        self.doc_manager.ensure_directories(code_member)
+        if self.doc_manager.needs_embedding(code_member):
+            self._embed_all_documents()
+    
+    def _embed_all_documents(self) -> None:
+        """Embed all documents in the data directory"""
+        for filename in os.listdir(self.config.text_data_path):
+            product_name = filename.split(".")[0]
+            file_path, db_path = self.doc_manager.get_document_paths(product_name)
+            
+            documents = IngestBuilder().load_document_chunked(file_path)
+            self.vector_handler.create_or_load_db(documents, db_path)
+    
+    def _load_product_data(self, product_name: str) -> Tuple[List[Document], Chroma]:
+        """Load data for a specific product"""
+        file_path, db_path = self.doc_manager.get_document_paths(product_name)
+        documents = IngestBuilder().load_document_chunked(file_path)
+        vector_db = self.vector_handler.create_or_load_db(documents, db_path)
+        return documents, vector_db
+    
     @timing_decorator
     def get_context(self, query: str, product_name: str) -> str:
         """
-        Hàm này để lấy context từ câu hỏi của người dùng
+        Get relevant context for a query about a specific product
         
-        Arg:
-            query: câu hỏi của người dùng sau khi được rewrite.
-            db_name: loại db chứa data cần tìm kiếm
-        
-        Return:
-            phần context liên quan đến query cho llm
+        Args:
+            query: User query after rewriting
+            product_name: Name of the product to search in
+            
+        Returns:
+            Relevant context for the query
         """
-
-        data_chunked, vector_db = self.initialize_database_embedding(product_name=product_name)
-
-        retriever = self.initialize_retriever(vector_db=vector_db, data_chunked=data_chunked)
+        documents, vector_db = self._load_product_data(product_name)
+        retriever = self.retriever_builder.build_ensemble_retriever(vector_db, documents)
         contents = retriever.invoke(input=query)
-
-        final_contents = "\n".join(doc.page_content for doc in contents)
-        return final_contents
+        
+        return "\n".join(doc.page_content for doc in contents)
 
 if __name__ == "__main__":
     query = "Tôi muốn mua điều hòa có công suất 18000BTU"
-    retriever = Retriever()
-    response = retriever.get_context(query=query)
+    retriever = Retriever(code_member="test")
+    response = retriever.get_context(query=query, product_name="air_conditioner")
     print(response)

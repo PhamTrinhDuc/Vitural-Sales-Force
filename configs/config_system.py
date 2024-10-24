@@ -1,4 +1,5 @@
 import os
+from dataclasses import dataclass
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -8,9 +9,11 @@ load_dotenv()
 os.environ['OPENAI_API_KEY'] = os.getenv("OPENAI_API_KEY")
 # os.environ['TAVILY_API_KEY'] = os.getenv("TAVILY_API_KEY")
 
+
+@dataclass
 class LoadConfig:
     # API CONFIG
-    MEMBER_CODE = ['G-JLVIYR', 'G-XNAWVM', 'G-MIMWPJ', 'G-QAXOHL']
+    MEMBER_CODE = ['G-JLVIYR', 'G-XNAWVM', 'G-MIMWPJ', 'G-QAXOHL', "NORMAL"]
     
     # SEVER CONFIG
     IP = "0.0.0.0"
@@ -39,8 +42,7 @@ class LoadConfig:
     VOICE_URL = "http://10.248.243.105:8005/voice"
 
     # ELASTIC_SEACH_CONFIG
-    # INDEX_NAME = "chatbot_super_app_v2"
-    INDEX_NAME = "chatbot_v1"  
+    INDEX_NAME = ['G-JLVIYR', 'G-XNAWVM', 'G-MIMWPJ', 'G-QAXOHL', "NORMAL"]
     ELASTIC_URL =  'http://10.248.243.105:9200'
     NUM_SIZE_ELAS =  10
     QUANTITY_SPECIFICATIONS =  ['số lượng', 'bao nhiêu', 'mấy loại', 'số lượng sản phẩm', 'danh sách', 'tổng số', 'mấy', 'liệt kê số lượng', 'liệt kê', 'số lượng hiện còn', 'danh sách đang còn hàng']
@@ -48,11 +50,11 @@ class LoadConfig:
     EXPENSIVE_KEYWORDS =  ["giá đắt", "giá cao", "xa xỉ", "sang trọng", "cao cấp", "đắt đỏ", "chất lượng cao", "hàng hiệu", "hàng cao cấp", "thượng hạng", "lớn nhất", "đắt nhất", "giá đắt nhất"]
 
     # DIRECTORIES
-    VECTOR_DATABASE_STORAGE = 'data/vector_db'
-    ALL_PRODUCT_FILE_CSV_STORAGE = 'data/data_private/data_final_superappv10.xlsx'
-    SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE = 'data/data_private/data_detail_superapp'
-    SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE = 'data/data_private/data_text'
-    SIMILAR_PRODUCT_STORAGE = 'data/data_private/data_dienmayxanh.csv'
+    VECTOR_DATABASE_STORAGE = 'data/vector_db/{member_code}'
+    ALL_PRODUCT_FILE_CSV_STORAGE = 'data/data_private/data_member/data_final_{member_code}.xlsx'
+    SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE = 'data/data_private/data_detail_superapp/{member_code}'
+    SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE = 'data/data_private/data_text/{member_code}'
+    SIMILAR_PRODUCT_STORAGE = 'data/data_dienmayxanh.csv'
     CONVERSATION_STORAGE = 'security/conv_storage'
     INFO_USER_STORAGE = 'security/info_user_storage'
 

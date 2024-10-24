@@ -15,7 +15,9 @@ dotenv.load_dotenv()
 class ElasticHelper:
     def __init__(self):
         pass
-    def init_elastic(self, df: pd.DataFrame, index_name: str = SYSTEM_CONFIG.INDEX_NAME) -> Elasticsearch:
+
+    @staticmethod
+    def init_elastic(df: pd.DataFrame, index_name: str = SYSTEM_CONFIG.INDEX_NAME) -> Elasticsearch:
         # Create the client instance
         # client = Elasticsearch(
         # # For local development
@@ -77,7 +79,8 @@ class ElasticHelper:
         except Exception as e:
             logging.error(f"An error occurred while connecting to Elastic Search: {str(e)}")
     
-    def check_specific_field(self, field_name: str):
+    @staticmethod
+    def check_specific_field(field_name: str):
 
         client = Elasticsearch(
             cloud_id=os.getenv("ELASTIC_CLOUD_ID"),
@@ -100,7 +103,8 @@ class ElasticHelper:
         count = client.count(index=SYSTEM_CONFIG.INDEX_NAME)['count']
         print(f"\nSố lượng document trong index {SYSTEM_CONFIG.INDEX_NAME}: {count}")
     
-    def parse_string_to_dict(self, input_string: str) -> dict:
+    @staticmethod
+    def parse_string_to_dict(input_string: str) -> dict:
         """
             Nhận string từ function calling trả về, xử lí string và đưa về dạng dictionary chứa thông tin của các thông số kĩ thuật.
             Dictionary này sẽ là đầu vào cho hàm search_db trong module_elastic/query_engine.py
@@ -124,7 +128,8 @@ class ElasticHelper:
             return f"Error: Invalid input string - {str(e)}"
         
 
-    def parse_specification_range(self, specification: str) -> Tuple[float, float]:
+    @staticmethod
+    def parse_specification_range(specification: str) -> Tuple[float, float]:
         """
         Nếu thông số là giá thì xử lí và trả về khảng giá, nếu không thì trả về giá trị mặc định.
         Args:
@@ -165,8 +170,9 @@ class ElasticHelper:
             min_value = 0
         print('min_value, max_value:',min_value, max_value)
         return min_value, max_value
-
-    def get_keywords(self, specification: str)-> Tuple[str, str, str]:
+    
+    @staticmethod
+    def get_keywords(specification: str)-> Tuple[str, str, str]:
         """
         Từ các thông số kĩ thuật do function calling extract ra, nếu có các cụm như: giá đắt nhất, công suất rẻ nhất...).
         Extract ra phần order, word, specification để đưa vào câu query của elastic search.
@@ -195,8 +201,8 @@ class ElasticHelper:
                 specification = ""
         return order, word, specification
 
-
-    def find_closest_match(self, query_product: str, list_product: List[str]) -> List:
+    @staticmethod
+    def find_closest_match(query_product: str, list_product: List[str]) -> List:
         """
 
         Hàm này dùng để tìm sản phẩm gần giống nhất với câu query của người dùng trong list_product.

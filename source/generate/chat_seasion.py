@@ -11,7 +11,7 @@ from source.model.loader import ModelLoader
 from langchain_community.callbacks.manager import get_openai_callback
 from source.retriever.chroma.retriever import Retriever
 from source.router.router import decision_search_type, classify_product
-from source.retriever.elastic_search import search_db, classify_intent
+from source.retriever.elastic_search import QueryEngineElastic, classify_intent
 from source.similar_product.searcher import SimilarProductSearchEngine
 from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_CHATCHIT, PROMPT_ORDER
 from utils import GradeReWrite, UserHelper, timing_decorator, PostgreHandler, HelperPiline
@@ -21,12 +21,14 @@ cache = InMemoryCache()
 set_llm_cache(cache)
 
 class Pipeline:
-    def __init__(self):
-        self.LLM_RAG = ModelLoader().load_rag_model()
-        self.LLM_CHAT_CHIT = ModelLoader().load_chatchit_model()
-        self.USER_HELPER =  UserHelper()  
-        self.PIPELINE_HELPER = HelperPiline()  
-        self.DB_LOGGER = PostgreHandler()   
+    def __init__(self, code_member: str):
+        self.llm_rag = ModelLoader().load_rag_model()
+        self.llm_chatchit = ModelLoader().load_chatchit_model()
+        self.els_seacher = QueryEngineElastic(code_member=code_member)
+        self.chroma_seacher = Retriever(code_member=code_member)
+        self.user_helper =  UserHelper()  
+        self.pipeline_helper = HelperPiline()  
+        self.db_logger = PostgreHandler()   
         self.user_info = None
         
     def _execute_llm_call(self, llm, prompt, structured_output=None):
@@ -72,7 +74,7 @@ class Pipeline:
         """
         try:
             return self._execute_llm_call(
-                self.LLM_RAG, 
+                self.llm_rag, 
                 PROMPT_HISTORY.format(question=query, chat_history=history),
                 GradeReWrite
             )
@@ -100,7 +102,7 @@ class Pipeline:
         try:
             engine = SimilarProductSearchEngine(product_find=product_name, user_info=user_info)
             response =  self._execute_llm_call(engine,  query)
-            response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
+            response['content'] = self.pipeline_helper._format_to_HTML(markdown_text=response['content'])
         except Exception as e:
             response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
@@ -127,13 +129,13 @@ class Pipeline:
         """
         try:
             all_product_data = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE)
-            original_product_info = self.PIPELINE_HELPER._double_check(question=query, dataframe=all_product_data)
+            original_product_info = self.pipeline_helper._double_check(question=query, dataframe=all_product_data)
             prompt = PromptTemplate(input_variables=['question', 'user_info', 'original_product_info'], template=PROMPT_ORDER)
-            response =  self._execute_llm_call(self.LLM_RAG, prompt.format(question=query, user_info=self.user_info, original_product_info = original_product_info))
-            response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
+            response =  self._execute_llm_call(self.llm_rag, prompt.format(question=query, user_info=self.user_info, original_product_info = original_product_info))
+            response['content'] = self.pipeline_helper._format_to_HTML(markdown_text=response['content'])
             
-            response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], query_rewritten=query, dataframe=all_product_data)
-            response['product_confirms'] = self.PIPELINE_HELPER._product_confirms(output_from_llm=response['content'], query_rewritten=query, dataframe=all_product_data)
+            response['products'] = self.pipeline_helper._product_seeking(output_from_llm=response['content'], query_rewritten=query, dataframe=all_product_data)
+            response['product_confirms'] = self.pipeline_helper._product_confirms(output_from_llm=response['content'], query_rewritten=query, dataframe=all_product_data)
                 
         except Exception as e:
             response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
@@ -161,19 +163,19 @@ class Pipeline:
         try:
             if product_id == -1:
                 template = PromptTemplate(input_variables=['question', 'user_info'], template=PROMPT_CHATCHIT)
-                response = self._execute_llm_call(self.LLM_CHAT_CHIT, template.format(question=query, user_info=self.user_info))
+                response = self._execute_llm_call(self.llm_chatchit, template.format(question=query, user_info=self.user_info))
             else:
                 db_name = SYSTEM_CONFIG.ID_2_NAME_PRODUCT[product_id]
                 print("DB NAME: ", db_name)
-                context = Retriever().get_context(query=query, product_name=db_name)
+                context = self.chroma_seacher.get_context(query=query, product_name=db_name)
                 prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
-                response = self._execute_llm_call(self.LLM_RAG, prompt.format(context=context, question=query, user_info=self.user_info))
+                response = self._execute_llm_call(self.llm_rag, prompt.format(context=context, question=query, user_info=self.user_info))
                 
                 specified_product_data  = pd.read_csv(os.path.join(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE, db_name + ".csv"))
-                response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], query_rewritten=query, dataframe=specified_product_data)
+                response['products'] = self.pipeline_helper._product_seeking(output_from_llm=response['content'], query_rewritten=query, dataframe=specified_product_data)
                 response['product_name'] = db_name
                 
-            response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
+            response['content'] = self.pipeline_helper._format_to_HTML(markdown_text=response['content'])
             response['total_token'] += result_classify['total_token']
             response['total_cost'] += result_classify['total_cost']
         except Exception as e:
@@ -199,14 +201,14 @@ class Pipeline:
         """
         try:
             demands = classify_intent(query)
-            response_elastic, products_info = search_db(demands)
+            response_elastic, products_info = self.els_seacher.search_db(demands)
 
             prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
-            response = self._execute_llm_call(self.LLM_RAG, prompt.format(context=response_elastic, question=query, user_info=self.user_info))
+            response = self._execute_llm_call(self.llm_rag, prompt.format(context=response_elastic, question=query, user_info=self.user_info))
             
             response['product_name'] = demands['object']
-            response['content'] = self.PIPELINE_HELPER._format_to_HTML(markdown_text=response['content'])
-            response['products'] = self.PIPELINE_HELPER._product_seeking(output_from_llm=response['content'], query_rewritten= query, dataframe=pd.DataFrame(products_info))
+            response['content'] = self.pipeline_helper._format_to_HTML(markdown_text=response['content'])
+            response['products'] = self.pipeline_helper._product_seeking(output_from_llm=response['content'], query_rewritten= query, dataframe=pd.DataFrame(products_info))
         except Exception as e:
             response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
@@ -239,8 +241,8 @@ class Pipeline:
             Dict[str, Any]: A dictionary containing the response and related information.
         
         """
-        self.USER_HELPER.save_users(UserInfor)
-        self.user_info = self.USER_HELPER.get_user_info(UserInfor['phone_number'])
+        self.user_helper.save_users(UserInfor)
+        self.user_info = self.user_helper.get_user_info(UserInfor['phone_number'])
 
         storage_info_output = {
             "product_name": None,
@@ -249,7 +251,7 @@ class Pipeline:
         }
         time_in = time.time()
         try:
-            history_conversation = self.USER_HELPER.load_conversation(conv_user=UserInfor['phone_number'], id_request=IdRequest)
+            history_conversation = self.user_helper.load_conversation(conv_user=UserInfor['phone_number'], id_request=IdRequest)
             # print("HISRORY", history_conversation)
             result_rewriten = self._rewrite_query(query=InputText, history=history_conversation)
             query_rewritten = result_rewriten['content']
@@ -285,7 +287,7 @@ class Pipeline:
                 'products': results.get('products', []),
                 'message': "Request processed successfully."
             })
-            self.USER_HELPER.save_conversation(phone_number=UserInfor['phone_number'], query=InputText, id_request=IdRequest, response=results['content'])
+            self.user_helper.save_conversation(phone_number=UserInfor['phone_number'], query=InputText, id_request=IdRequest, response=results['content'])
         
         except Exception as e:
             storage_info_output.update({"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'],
@@ -297,7 +299,7 @@ class Pipeline:
         
         # Save log to database
         try:
-            self.DB_LOGGER.insert_data(
+            self.db_logger.insert_data(
                 user_name=UserInfor['name'],
                 phone_number=UserInfor['phone_number'],
                 object_product=storage_info_output['product_name'],
