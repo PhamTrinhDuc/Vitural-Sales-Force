@@ -13,12 +13,13 @@ HELPER = HelperPiline()
 def handle_request(
     InputText: None,
     IdRequest: None,
-    NameBot: None,
     UserName: None,
+    MemberCode: None,
+    NameBot: None,
     Image: None,
     Voice: None,
-    PhoneNumber: None,
-    Address: None,):
+    Address: None,
+    PhoneNumber: None):
     """
 
     Hàm chính để tương tác với người dùng, dựa vào query, user_name, seasion_id của người dùng, đưa qua pipeline và trả về câu trả lời.
@@ -32,16 +33,31 @@ def handle_request(
     
     start_time = time.time()
     results = {
-        "products": [], 'product_confirms': [], "terms": [], "content": "",
-        "status": 200, "message": "", "time_processing": "", "end_message": SYSTEM_CONFIG.SYSTEM_MESSAGE['end_message'],
+        "products": [], 
+        'product_confirms': [], 
+        "terms": [], 
+        "content": "",
+        "status": 200, 
+        "message": "", 
+        "time_processing": "", 
+        "end_message": SYSTEM_CONFIG.SYSTEM_MESSAGE['end_message'],
     }
+    MemberCode = MemberCode if MemberCode is not None else "normal"
     Users = {
         "phone_number": PhoneNumber,
         "name": UserName,
     }
+
     try:
         if InputText not in("terms", 'first_text', None):
-            response = Pipeline().chat_session(InputText=InputText, IdRequest=IdRequest, NameBot=NameBot, Voice=Voice, Image=Image, UserInfor=Users)
+            response = Pipeline(member_code=MemberCode).chat_session(
+                InputText=InputText, 
+                IdRequest=IdRequest, 
+                NameBot=NameBot, 
+                Voice=Voice, 
+                Image=Image, 
+                UserInfor=Users)
+            
             results.update(**response)
             
         elif InputText == 'first_text' or InputText == None:
@@ -59,7 +75,6 @@ def handle_request(
     results['time_processing'] = f"{time.time() - start_time:.2f}s"
     return results
 
-
 def handle_title_conversation(phone_number: None) -> dict:
     data = {"data": []}
     user_specific_conversation = os.path.join(SYSTEM_CONFIG.CONVERSATION_STORAGE, phone_number)
@@ -72,7 +87,6 @@ def handle_title_conversation(phone_number: None) -> dict:
         
         data['data'].append({"session_id": session_id, "title": title})
     return data
-
 
 def hanle_conversation(phone_number: None, session_id: None) -> dict:
     session_conv_path = os.path.join(SYSTEM_CONFIG.CONVERSATION_STORAGE, phone_number, session_id + '.json')

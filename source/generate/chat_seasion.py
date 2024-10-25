@@ -9,9 +9,9 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.caches import InMemoryCache
 from source.model.loader import ModelLoader
 from langchain_community.callbacks.manager import get_openai_callback
-from source.retriever.chroma.retriever import Retriever
+from source.retriever.chroma.retriever import ChromaQueryEngine
 from source.router.router import decision_search_type, classify_product
-from source.retriever.elastic_search import QueryEngineElastic, classify_intent
+from source.retriever.elastic_search import ElasticQueryEngine, classify_intent
 from source.similar_product.searcher import SimilarProductSearchEngine
 from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_CHATCHIT, PROMPT_ORDER
 from utils import GradeReWrite, UserHelper, timing_decorator, PostgreHandler, HelperPiline
@@ -21,11 +21,12 @@ cache = InMemoryCache()
 set_llm_cache(cache)
 
 class Pipeline:
-    def __init__(self, code_member: str):
+    def __init__(self, member_code: str):
+        self.member_code = member_code
         self.llm_rag = ModelLoader().load_rag_model()
         self.llm_chatchit = ModelLoader().load_chatchit_model()
-        self.els_seacher = QueryEngineElastic(code_member=code_member)
-        self.chroma_seacher = Retriever(code_member=code_member)
+        self.els_seacher = ElasticQueryEngine(member_code=self.member_code)
+        self.chroma_seacher = ChromaQueryEngine(member_code=self.member_code)
         self.user_helper =  UserHelper()  
         self.pipeline_helper = HelperPiline()  
         self.db_logger = PostgreHandler()   
@@ -128,14 +129,20 @@ class Pipeline:
         
         """
         try:
-            all_product_data = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE)
+            all_product_data = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_MERGED_STORAGE.format(member_code=self.member_code))
             original_product_info = self.pipeline_helper._double_check(question=query, dataframe=all_product_data)
             prompt = PromptTemplate(input_variables=['question', 'user_info', 'original_product_info'], template=PROMPT_ORDER)
-            response =  self._execute_llm_call(self.llm_rag, prompt.format(question=query, user_info=self.user_info, original_product_info = original_product_info))
+            response =  self._execute_llm_call(self.llm_rag, prompt.format(question=query, 
+                                                                           user_info=self.user_info, 
+                                                                           original_product_info = original_product_info))
             response['content'] = self.pipeline_helper._format_to_HTML(markdown_text=response['content'])
             
-            response['products'] = self.pipeline_helper._product_seeking(output_from_llm=response['content'], query_rewritten=query, dataframe=all_product_data)
-            response['product_confirms'] = self.pipeline_helper._product_confirms(output_from_llm=response['content'], query_rewritten=query, dataframe=all_product_data)
+            response['products'] = self.pipeline_helper._product_seeking(output_from_llm=response['content'], 
+                                                                         query_rewritten=query, 
+                                                                         dataframe=all_product_data)
+            response['product_confirms'] = self.pipeline_helper._product_confirms(output_from_llm=response['content'], 
+                                                                                  query_rewritten=query, 
+                                                                                  dataframe=all_product_data)
                 
         except Exception as e:
             response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
@@ -149,11 +156,9 @@ class Pipeline:
         """
 
         Handle text-based queries.
-
         Args:
             query (str): The user's query.
             rag_chain: The RAG chain for processing.
-
         Returns:
             Dict[str, Any]: The response and token usage.
         
@@ -169,10 +174,15 @@ class Pipeline:
                 print("DB NAME: ", db_name)
                 context = self.chroma_seacher.get_context(query=query, product_name=db_name)
                 prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
-                response = self._execute_llm_call(self.llm_rag, prompt.format(context=context, question=query, user_info=self.user_info))
+                response = self._execute_llm_call(self.llm_rag, prompt.format(context=context, 
+                                                                              question=query, 
+                                                                              user_info=self.user_info))
                 
-                specified_product_data  = pd.read_csv(os.path.join(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE, db_name + ".csv"))
-                response['products'] = self.pipeline_helper._product_seeking(output_from_llm=response['content'], query_rewritten=query, dataframe=specified_product_data)
+                specified_product_data_path = os.path.join(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE.format(member_code=self.member_code), db_name + ".csv")
+                specified_product_data  = pd.read_csv(os.path.join(specified_product_data_path))
+                response['products'] = self.pipeline_helper._product_seeking(output_from_llm=response['content'], 
+                                                                             query_rewritten=query, 
+                                                                             dataframe=specified_product_data)
                 response['product_name'] = db_name
                 
             response['content'] = self.pipeline_helper._format_to_HTML(markdown_text=response['content'])
@@ -204,11 +214,15 @@ class Pipeline:
             response_elastic, products_info = self.els_seacher.search_db(demands)
 
             prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
-            response = self._execute_llm_call(self.llm_rag, prompt.format(context=response_elastic, question=query, user_info=self.user_info))
+            response = self._execute_llm_call(self.llm_rag, prompt.format(context=response_elastic, 
+                                                                          question=query, 
+                                                                          user_info=self.user_info))
             
             response['product_name'] = demands['object']
             response['content'] = self.pipeline_helper._format_to_HTML(markdown_text=response['content'])
-            response['products'] = self.pipeline_helper._product_seeking(output_from_llm=response['content'], query_rewritten= query, dataframe=pd.DataFrame(products_info))
+            response['products'] = self.pipeline_helper._product_seeking(output_from_llm=response['content'], 
+                                                                         query_rewritten= query, 
+                                                                         dataframe=pd.DataFrame(products_info))
         except Exception as e:
             response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,

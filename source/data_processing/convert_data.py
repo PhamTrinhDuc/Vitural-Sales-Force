@@ -56,7 +56,7 @@ class DataConverter:
                         f"Tên sản phẩm: '{row['product_name']}' - "
                         f"Mã sản phẩm: {row['product_info_id']} - "
                         f"Giá: {row['lifecare_price']}\n"
-                        f"Thông số kỹ thuật:\n {row['specification']}\n\n"
+                        f"Thông số kỹ thuật:\n {row['specifications']}\n\n"
                     )
                     documents.append(Document(content))
 
@@ -65,7 +65,7 @@ class DataConverter:
                 with open(output_path, 'wb') as f:
                     pickle.dump(documents, f)
 
-            os.remove(csv_path)
+            # os.remove(csv_path)
             logging.info("Successfully converted product data.")
         except Exception as e:
             logging.error(f"Error when converting product data: {e}")
@@ -74,6 +74,7 @@ class DataConverter:
         """
         Kiểm tra và xử lý dữ liệu nếu cần.
         """
+        os.makedirs(self.text_folder.format(member_code=self.member_code), exist_ok=True)
         text_path = self.text_folder.format(member_code=self.member_code)
         if len(os.listdir(text_path)) < self.num_products:
             self.convert_product_data()

@@ -2,19 +2,19 @@ import os
 import pandas as pd
 import logging
 from unidecode import unidecode
-from typing import Literal
+from typing import Literal, Optional
 from configs.config_system import LoadConfig
 CONFIG_SYSTEM = LoadConfig()
 
 class DataMerger:
     def __init__(self, 
-                 origin_data_path: str, 
-                 new_data_path: str, 
-                 merged_file_path: str):
+                 origin_data_path: Optional[str], 
+                 new_data_path: Optional[str], 
+                 output_file_path: Optional[str]):
         
         self.origin_df = pd.read_excel(origin_data_path)
         self.new_df = pd.read_excel(new_data_path)
-        self.merged_file_path = merged_file_path
+        self.output_file_path = output_file_path
 
     def mergering(self) -> pd.DataFrame:
         try:
@@ -42,7 +42,7 @@ class DataMerger:
                 'shortDescription': 'short_description',
                 'imgList': 'file_path',
                 'productDescription': 'product_info',
-                'specifications': 'specification',
+                # 'specifications': 'specification',
                 'soldQuantity': 'sold_quantity',
                 'price': 'lifecare_price',
             }, inplace=True)
@@ -50,8 +50,8 @@ class DataMerger:
             df_final['group_product_name'] = df_final.groupby('group_product_id')['group_product_name'].transform('first')
             # Tạo cột group_name bằng cách cộng group_product_name và product_name
             df_final['group_name'] = df_final['group_product_name'] + ' ' + df_final['product_name']
-            df_final.to_excel(self.merged_file_path, index=False)
-            logging.info(f"Successfully merged data to {self.merged_file_path}")
+            df_final.to_excel(self.output_file_path, index=False)
+            logging.info(f"Successfully merged data to {self.output_file_path}")
             return df_final
         except Exception as e:
             logging.error(f"Error when merging data: {e}")

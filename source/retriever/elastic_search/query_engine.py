@@ -7,19 +7,14 @@ from utils import timing_decorator
 from .elastic_helper import ElasticHelper
 from configs import SYSTEM_CONFIG
 
-
-class QueryEngineElastic:
+class ElasticQueryEngine:
     NUMBER_SIZE_ELAS = SYSTEM_CONFIG.NUM_SIZE_ELAS
-    INDEX_NAME = SYSTEM_CONFIG.INDEX_NAME
     MATCH_THRESHOLD = 60
 
-    def __init__(self, code_member: str):
-
+    def __init__(self, member_code: str):
+        self.index_name = member_code.replace("-", "").lower()
         self.elastic_helper = ElasticHelper()
-        print(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE.format(code_member=code_member))
-        self.dataframe = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE.format(code_member=code_member))
-        self.client = self.elastic_helper.init_elastic(self.dataframe, QueryEngineElastic.INDEX_NAME)
-
+        self.dataframe = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_MERGED_STORAGE.format(member_code=member_code))
 
     def create_filter_range(self, field: str, value: str) -> Dict:
         """
@@ -84,7 +79,7 @@ class QueryEngineElastic:
                     ]
                 }
             },
-            "size": QueryEngineElastic.NUMBER_SIZE_ELAS
+            "size": ElasticQueryEngine.NUMBER_SIZE_ELAS
         }
 
         for field, value in [('lifecare_price', price), ('power', power), ('weight', weight), ('volume', volume)]:
@@ -105,8 +100,7 @@ class QueryEngineElastic:
         print(query)
         return query
 
-    @staticmethod
-    def bulk_search_products(client: Elasticsearch, queries: List[Dict]) -> List[Dict]:
+    def bulk_search_products(self, client: Elasticsearch, queries: List[Dict]) -> List[Dict]:
         """
         Hàm này dùng để search nhiều query trên elasticsearch.
 
@@ -118,7 +112,7 @@ class QueryEngineElastic:
         """
         body = []
         for query in queries:
-            body.extend([{"index": QueryEngineElastic.INDEX_NAME}, query])
+            body.extend([{"index": self.index_name}, query])
         
         results = client.msearch(body=body)
         return results['responses']
@@ -136,6 +130,8 @@ class QueryEngineElastic:
             - trả về câu trả lời, list chứa thông tin sản phẩm, và số lượng sản phẩm tìm thấy
         """
         print(demands)
+        client = self.elastic_helper.init_elastic(df=self.dataframe, 
+                                                  index_name=self.index_name)
         
         list_products = self.dataframe['group_name'].unique()
         product_names = demands['object']
@@ -147,7 +143,7 @@ class QueryEngineElastic:
         for product_name, price in zip(product_names, prices):
             match_product, match_score = self.elastic_helper.find_closest_match(product_name, list_products)
 
-            if match_score < QueryEngineElastic.MATCH_THRESHOLD:
+            if match_score < ElasticQueryEngine.MATCH_THRESHOLD:
                 continue
             product = self.dataframe[self.dataframe['group_name'] == match_product]['group_product_name'].iloc[0]
         
@@ -160,7 +156,7 @@ class QueryEngineElastic:
         if not queries:
             return "", []
         
-        results = self.bulk_search_products(self.client, queries)
+        results = self.bulk_search_products(client, queries)
         out_text = ""
         products_info = []
 
@@ -184,4 +180,4 @@ class QueryEngineElastic:
         - Mã sản phẩm: {product_details['product_info_id']} 
         - Giá: {product_details['lifecare_price']:,.0f} đ
         - Số lượng đã bán: {product_details['sold_quantity']}
-        - Thông số : {product_details['specification']}\n"""
+        - Thông số : {product_details['specifications']}\n"""

@@ -83,12 +83,10 @@
 ######### TEST RETRIEVER ########
 # from source.retriever.chroma.retriever import Retriever
 # retriever = Retriever()
-# # response = retriever.get_context(query="KPI xử lý bảo hành điều hòa", 
-# #                                  product_name="dieu_hoa")
-# response = retriever.get_info_product(
-#     id_product="M&EGD000254",
-#     data_path='data/data_private/data_csv/cong_tac.csv')
-
+# response = retriever.get_context(query="KPI xử lý bảo hành điều hòa", 
+#                                  product_name="dieu_hoa", 
+#                                  member_code="G-JLVIYR")
+# print(response)
 ######### TEST INGEST DATA ########
 # from source.ingest_data.ingestion import IngestBuilder
 # data = IngestBuilder.load_document_chunked()
@@ -101,19 +99,20 @@
 # print(response)
 
 ######### TEST CHAT API CALL ########
-# from source.generate.chat_seasion import Pipeline 
-# from api.handle_request import handle_request
+from source.generate.chat_seasion import Pipeline 
+from api.handle_request import handle_request
 
-# response = handle_request(
-#     InputText = "bán cho tôi điều hòa bên bạn",
-#     UserName="Hiệp",
-#     IdRequest="9989",
-#     PhoneNumber='0886945868',
-#     Address='Hà Nội',
-#     Voice = None,
-#     Image=None,
-#     NameBot=None)
-# print(response)
+response = handle_request(
+    InputText = "cho tôi xem diều hòa bán chạy",
+    UserName="Hiệp",
+    IdRequest="9989",
+    PhoneNumber='08354945868',
+    Address='Hà Nội',
+    MemberCode="G-MIMWPJ",
+    Voice = None,
+    Image=None,
+    NameBot=None)
+print(response)
 
 # from utils.user_helper import UserHelper
 # UserHelper().save_conversation(phone_number="0123456789", id_request="123", query="gmsdgsdm", response="sdmn")
@@ -158,14 +157,12 @@
 # postgres_handle.create_table()
 # postgres_handle.connection.close()
 
-# from source.data_processor.run import process_data_and_save
-# from source.data_processor.clone_data import download_superapp_data
+# from source.data_processing.processor import DataProcessingPipeline
 
-# df = download_superapp_data(code_member="G-JLVIYR")
-# print(df.head())    
-# # process_data_and_save()
+# pipeline = DataProcessingPipeline()
+# pipeline.processing(member_codes=["G-JLVIYR", "G-XNAWVM", "G-MIMWPJ", "G-QAXOHL", "NORMAL"])
 
-from source.data_processor.run import DataProcessingPipeline
-
-pipeline = DataProcessingPipeline()
-pipeline.processing()
+########### TEST MERGE DATA ############
+# from source.data_processing.fast_process import fast_merge, indexing_data
+# fast_merge()
+# indexing_data()

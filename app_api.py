@@ -14,11 +14,11 @@ async def post_request(
     nameBot: str = Form(...),
     phoneNumber: str = Form(...),
     userName: str = Form(...),
+    memberCode: str = Form(...),
     inputText: str = Form(None),
     address: str = Form(None),
     image: UploadFile = File(None),
-    voice: UploadFile = File(None)
-    
+    voice: UploadFile = File(None),
 ):
     global numberrequest
     numberrequest += 1
@@ -32,8 +32,9 @@ async def post_request(
     results = handle_request(
         InputText=inputText,
         IdRequest=idRequest,
-        NameBot=nameBot,
         UserName=userName,
+        MemberCode=memberCode,
+        NameBot=nameBot,
         Image=image,
         Voice=voice,
         PhoneNumber=phoneNumber,

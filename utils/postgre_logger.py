@@ -12,7 +12,7 @@ class PostgreHandler:
         self.port = SYSTEM_CONFIG.POSTGRES_PORT
         self.max_timeout = SYSTEM_CONFIG.POSTGRE_TIMEOUT
         self.connector, error = self.connect_to_postgre()
-        self.create_table()
+        # self.create_table()
 
         if self.connector is None:
             logging.error(f"Error: {error.upper()}")

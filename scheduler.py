@@ -1,7 +1,7 @@
 import time
 import schedule
 from configs.config_system import SYSTEM_CONFIG
-from source.data_processor.run import DataProcessingPipeline
+from source.data_processing.processor import DataProcessingPipeline
 
 pipeline = DataProcessingPipeline()
 # Lập lịch để chạy công việc vào lúc 6 giờ sáng hàng ngày

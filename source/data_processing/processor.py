@@ -1,4 +1,5 @@
 import os
+import requests
 import logging
 from typing import List, Optional
 import pandas as pd
@@ -36,8 +37,10 @@ class DataProcessingPipeline:
     def process_single_member(
         self,
         member_code: str,
-        all_data_path: str,
-        data_available_path: str
+        all_product_not_merge: str,
+        all_product_merged: str,
+        data_available_path: str,
+
     ) -> None:
         """Process data for a single member."""
         try:
@@ -45,18 +48,19 @@ class DataProcessingPipeline:
             
             # Download data
             # data = download_superapp_data(member_code)
-            data = pd.read_excel("data/data_private/data_member/data_final_G-JLVIYR.xlsx")
+            data = pd.read_excel(all_product_not_merge.format(member_code=member_code))
             if data is None or data.empty:
                 logger.warning(f"No data available for member {member_code}")
                 return
 
             # Process raw data
-            processed_df = self._process_raw_data(data, member_code, all_data_path)
+            processed_df = self._process_raw_data(data, member_code, all_product_not_merge)
             
             # Merge data
             merged_df = self._merge_data(
                 member_code, 
-                all_data_path, 
+                all_product_not_merge, 
+                all_product_merged,
                 data_available_path
             )
             
@@ -73,12 +77,12 @@ class DataProcessingPipeline:
     def _process_raw_data(
         data: pd.DataFrame, 
         member_code: str,
-        all_data_path: str
+        all_product_not_merge: str,
     ) -> pd.DataFrame:
         """Process raw data using DataProcessor."""
         processor = DataProcessor(data)
         processed_df = processor.process().sort_values(by='productGroupId')
-        output_path = all_data_path.format(member_code=member_code)
+        output_path = all_product_not_merge.format(member_code=member_code)
         processed_df.to_excel(output_path, index=False)
         logger.info(f"Processed raw data for member {member_code}")
         return processed_df
@@ -86,17 +90,18 @@ class DataProcessingPipeline:
     @staticmethod
     def _merge_data(
         member_code: str,
-        all_data_path: str,
-        data_available_path: str
+        all_product_not_merge: str,
+        all_product_merged: str,
+        data_available_path: str,
     ) -> pd.DataFrame:
         """Merge and group data."""
-        new_data_path = all_data_path.format(member_code=member_code)
-        output_path = all_data_path.format(member_code=f"{member_code}_merged")
+        new_data_path = all_product_not_merge.format(member_code=member_code)
+        output_path = all_product_merged.format(member_code=f"{member_code}")
         
         merger = DataMerger(
             origin_data_path=data_available_path,
             new_data_path=new_data_path,
-            merged_file_path=output_path
+            output_file_path=output_path
         )
         
         merged_df = merger.mergering()
@@ -119,25 +124,29 @@ class DataProcessingPipeline:
 
     def processing(
         self,
-        all_data_path: str,
+        all_product_not_merge: str = None,
+        all_product_merged: str = None,
         data_available_path: str = "data/data_private/product_final_300_extract.xlsx",
         member_codes: Optional[List[str]] = None
     ) -> None:
         
         """Process data for all specified members."""
-        if all_data_path is None:
-            all_data_path = self.config.ALL_PRODUCT_FILE_CSV_STORAGE
+        if all_product_merged is None:
+            all_product_merged = self.config.ALL_PRODUCT_FILE_MERGED_STORAGE
+        if all_product_not_merge is None:
+            all_product_not_merge = self.config.ALL_PRODUCT_FILE_NOT_MERGE_STORAGE
         if member_codes is None:
             member_codes = self.config.MEMBER_CODE
 
         for member_code in member_codes:
-            if member_code != "G-JLVIYR":  # TODO: Remove this condition if not needed
-                continue
+            # if member_code != "G-JLVIYR":  # TODO: Remove this condition if not needed
+            #     continue
             logger.info(f"Starting processing for member {member_code}")
             try:
                 self.process_single_member(
                     member_code,
-                    all_data_path,
+                    all_product_not_merge,
+                    all_product_merged,
                     data_available_path
                 )
             except Exception as e:

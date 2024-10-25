@@ -18,6 +18,7 @@ class ElasticHelper:
 
     @staticmethod
     def init_elastic(df: pd.DataFrame, index_name: str = SYSTEM_CONFIG.INDEX_NAME) -> Elasticsearch:
+        print(df.columns.tolist())
         # Create the client instance
         # client = Elasticsearch(
         # # For local development
@@ -37,7 +38,7 @@ class ElasticHelper:
                 "short_description": {"type": "text"},
                 "file_path": {"type" : "text"},
                 "product_info": {"type": "text"},
-                "specification": {"type": "text"},
+                "specifications": {"type": "text"},
                 "sold_quantity": {"type": "integer"},
                 "lifecare_price": {"type": "float"},
                 "power": {"type": "float"},
@@ -60,7 +61,7 @@ class ElasticHelper:
                         "short_description": row["short_description"],
                         "file_path": row["file_path"],
                         "product_info": row["product_info"],
-                        "specification": row["specification"],
+                        "specifications": row["specifications"],
                         "sold_quantity": row["sold_quantity"],
                         "lifecare_price": row["lifecare_price"],
                         "power": row["power"],

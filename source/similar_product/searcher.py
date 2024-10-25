@@ -16,7 +16,7 @@ class SimilarProductSearchEngine:
                  product_find: str,
                  user_info: Dict[str, Any],
                  product_similar_path: Optional[str] = SYSTEM_CONFIG.SIMILAR_PRODUCT_STORAGE,
-                 product_origin_path: Optional[str] = SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE):
+                 product_origin_path: Optional[str] = SYSTEM_CONFIG.ALL_PRODUCT_FILE_MERGED_STORAGE):
         
         self.model_embed = ModelLoader().load_embed_baai_model()
         self.llm = ModelLoader().load_rag_model()

@@ -29,7 +29,6 @@ class DataIndexer:
                     logging.info(f"Index {index_name} does not exist")
             except Exception as e:
                 logging.error(f"Error when deleting index {index_name}: {e}")
-        
 
     @staticmethod
     def _create_db(documents: List[Document], db_path: str) -> None:

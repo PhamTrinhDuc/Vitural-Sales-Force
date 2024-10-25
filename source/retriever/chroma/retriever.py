@@ -1,4 +1,5 @@
 import os
+import pickle
 import dotenv
 from typing import List, Tuple, Optional
 from dataclasses import dataclass
@@ -8,7 +9,6 @@ from langchain.retrievers import EnsembleRetriever
 from langchain_community.retrievers import BM25Retriever
 from langchain_openai import OpenAIEmbeddings
 from utils import timing_decorator
-from ...ingest_data.ingestion import IngestBuilder
 from ...model.loader import ModelLoader
 from configs import SYSTEM_CONFIG
 
@@ -28,20 +28,25 @@ class DocumentManager:
     def __init__(self, config: RetrieverConfig):
         self.config = config
     
-    def ensure_directories(self, code_member: str) -> None:
-        """Ensure necessary directories exist"""
-        os.makedirs(self.config.vector_db_path.format(code_member=code_member), exist_ok=True)
-        os.makedirs(self.config.text_data_path.format(code_member=code_member), exist_ok=True)
-    
-    def needs_embedding(self, code_member: str) -> bool:
-        """Check if documents need to be embedded"""
-        return len(os.listdir(self.config.vector_db_path.format(code_member=code_member))) < self.config.num_products
-
-    def get_document_paths(self, product_name: str) -> Tuple[str, str]:
+    def get_document_paths(self, 
+                           member_code: str, 
+                           product_name: str) -> Tuple[str, str]:
         """Get file and database paths for a product"""
-        file_path = os.path.join(self.config.text_data_path, f"{product_name}.pkl")
-        db_path = os.path.join(self.config.vector_db_path, product_name)
+        file_path = os.path.join(
+            self.config.text_data_path.format(member_code=member_code), 
+            f"{product_name}.pkl"
+            )
+        
+        db_path = os.path.join(
+            self.config.vector_db_path.format(member_code=member_code), 
+            product_name
+            )
         return file_path, db_path
+    
+    def load_document_chunked(self, file_path: str) -> Document:
+        """Load a single document"""
+        with open(file_path, "rb") as file:
+            return pickle.load(file)
 
 class VectorDBHandler:
     """Handles vector database operations"""
@@ -91,41 +96,23 @@ class RetrieverBuilder:
             search_kwargs={"k": self.config.top_k_products}
         )
 
-class Retriever:
+class ChromaQueryEngine:
     """Main retriever class coordinating document retrieval operations"""
     
     def __init__(self, 
-                 code_member: str, 
+                 member_code: str,
                  config: Optional[RetrieverConfig] = None):
-        
+        self.member_code = member_code
         self.config = config or RetrieverConfig()
         self.doc_manager = DocumentManager(self.config)
         self.vector_handler = VectorDBHandler()
         self.retriever_builder = RetrieverBuilder(self.config)
-        
-        # Initialize system
-        self._initialize_system(code_member)
-    
-    def _initialize_system(self, code_member: str) -> None:
-        """Initialize the retrieval system"""
-        self.doc_manager.ensure_directories(code_member)
-        if self.doc_manager.needs_embedding(code_member):
-            self._embed_all_documents()
-    
-    def _embed_all_documents(self) -> None:
-        """Embed all documents in the data directory"""
-        for filename in os.listdir(self.config.text_data_path):
-            product_name = filename.split(".")[0]
-            file_path, db_path = self.doc_manager.get_document_paths(product_name)
-            
-            documents = IngestBuilder().load_document_chunked(file_path)
-            self.vector_handler.create_or_load_db(documents, db_path)
-    
-    def _load_product_data(self, product_name: str) -> Tuple[List[Document], Chroma]:
+
+    def _load_product_data(self, product_name: str, member_code: str) -> Tuple[List[Document], Chroma]:
         """Load data for a specific product"""
-        file_path, db_path = self.doc_manager.get_document_paths(product_name)
-        documents = IngestBuilder().load_document_chunked(file_path)
-        vector_db = self.vector_handler.create_or_load_db(documents, db_path)
+        file_path, db_path = self.doc_manager.get_document_paths(product_name=product_name, member_code=member_code)
+        documents = self.doc_manager.load_document_chunked(file_path=file_path)
+        vector_db = self.vector_handler.create_or_load_db(documents=documents, db_path=db_path)
         return documents, vector_db
     
     @timing_decorator
@@ -140,7 +127,7 @@ class Retriever:
         Returns:
             Relevant context for the query
         """
-        documents, vector_db = self._load_product_data(product_name)
+        documents, vector_db = self._load_product_data(product_name, self.member_code)
         retriever = self.retriever_builder.build_ensemble_retriever(vector_db, documents)
         contents = retriever.invoke(input=query)
         
@@ -148,6 +135,6 @@ class Retriever:
 
 if __name__ == "__main__":
     query = "Tôi muốn mua điều hòa có công suất 18000BTU"
-    retriever = Retriever(code_member="test")
+    retriever = ChromaQueryEngine(code_member="test")
     response = retriever.get_context(query=query, product_name="air_conditioner")
     print(response)

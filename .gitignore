@@ -24,6 +24,7 @@ conversation_storage
 # data
 data_text
 vector_db
+data_detail_superapp
 
 
 # Distribution / packaging
