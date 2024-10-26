@@ -5,11 +5,11 @@ from typing import Dict, List, Tuple, Optional
 from elasticsearch import Elasticsearch
 from utils import timing_decorator
 from source.retriever.elastic_search import ElasticHelper
-from configs import SYSTEM_CONFIG
+from configs.config_system import LoadConfig
 
-NUMBER_SIZE_ELAS = SYSTEM_CONFIG.NUM_SIZE_ELAS
-DATAFRAME = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_CSV_STORAGE)
-INDEX_NAME = SYSTEM_CONFIG.INDEX_NAME
+NUMBER_SIZE_ELAS = LoadConfig.NUM_SIZE_ELAS
+DATAFRAME = pd.read_excel(LoadConfig.ALL_PRODUCT_FILE_CSV_STORAGE)
+INDEX_NAME = LoadConfig.INDEX_NAME
 MATCH_THRESHOLD = 30
 
 def create_filter_range(field: str, value: str) -> Dict:
