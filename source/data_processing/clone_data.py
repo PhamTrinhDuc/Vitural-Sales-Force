@@ -4,8 +4,6 @@ import os
 import json
 import logging
 from typing import List, Literal
-from configs.config_system import LoadConfig
-CONFIG_SYSTEM = LoadConfig()
 
 def download_superapp_data(code_member: str =  Literal['G-JLVIYR', 'G-XNAWVM', 'G-MIMWPJ', 'G-QAXOHL', "NORMAL"]) -> pd.DataFrame:
     

@@ -3,8 +3,15 @@ import pickle
 import pandas as pd
 import logging
 from typing import List
+from dataclasses import dataclass
 from langchain_core.documents import Document
 from configs.config_system import SYSTEM_CONFIG
+
+@dataclass
+class ConvertConfig:
+    num_products: int = SYSTEM_CONFIG.NUM_PRODUCT,
+    text_folder: str = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE,
+    csv_folder: str = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE,
 
 class DataConverter:
     """
@@ -14,13 +21,11 @@ class DataConverter:
     def __init__(
         self,
         member_code: str,
-        num_products: int = SYSTEM_CONFIG.NUM_PRODUCT,
-        text_folder: str = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE,
-        csv_folder: str = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE,
+        config: ConvertConfig
     ):
-        self.num_products = num_products
-        self.text_folder = text_folder
-        self.csv_folder = csv_folder
+        self.num_products = config.num_products
+        self.text_folder = config.text_folder
+        self.csv_folder = config.csv_folder
         self.member_code = member_code
 
     def convert_faq_data(self, xlsx_path: str) -> List[Document]:

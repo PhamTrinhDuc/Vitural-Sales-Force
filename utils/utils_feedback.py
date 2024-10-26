@@ -1,10 +1,9 @@
-
 import os
 import json
-from configs import SYSTEM_CONFIG
+from configs.config_system import LoadConfig
 class UserFeedback:
     def __init__(self):
-        self.FEEDBACK_STORAGE  = SYSTEM_CONFIG.FEEDBACK_STORAGE
+        self.FEEDBACK_STORAGE  = LoadConfig.FEEDBACK_STORAGE
         os.makedirs(self.FEEDBACK_STORAGE, exist_ok=True)
     def save_conversation(self, phone_number: str, id_request: str,
                         query: str, response: str, rating: float = None, 

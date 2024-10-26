@@ -15,7 +15,8 @@ from source.retriever.elastic_search import ElasticQueryEngine, classify_intent
 from source.similar_product.searcher import SimilarProductSearchEngine
 from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_CHATCHIT, PROMPT_ORDER
 from utils import GradeReWrite, UserHelper, timing_decorator, PostgreHandler, HelperPiline
-from configs.config_system import SYSTEM_CONFIG
+from configs.config_system import LoadConfig
+
 
 cache = InMemoryCache()
 set_llm_cache(cache)
@@ -81,7 +82,7 @@ class Pipeline:
             )
         except Exception as e :
             logging.error("REWRITE QUERY ERROR: " + str(e))
-            response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
+            response = {"content": LoadConfig.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
                         "status": 500, 
                         "message": f"QUERY REWRITE ERR: {str(e)}"}
@@ -105,7 +106,7 @@ class Pipeline:
             response =  self._execute_llm_call(engine,  query)
             response['content'] = self.pipeline_helper._format_to_HTML(markdown_text=response['content'])
         except Exception as e:
-            response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
+            response = {"content": LoadConfig.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
                         "status": 500, 
                         "message": f"SIMILARITY QUERY ERROR: {str(e)}"}
@@ -129,7 +130,7 @@ class Pipeline:
         
         """
         try:
-            all_product_data = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_MERGED_STORAGE.format(member_code=self.member_code))
+            all_product_data = pd.read_excel(LoadConfig.ALL_PRODUCT_FILE_MERGED_STORAGE.format(member_code=self.member_code))
             original_product_info = self.pipeline_helper._double_check(question=query, dataframe=all_product_data)
             prompt = PromptTemplate(input_variables=['question', 'user_info', 'original_product_info'], template=PROMPT_ORDER)
             response =  self._execute_llm_call(self.llm_rag, prompt.format(question=query, 
@@ -145,7 +146,7 @@ class Pipeline:
                                                                                   dataframe=all_product_data)
                 
         except Exception as e:
-            response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
+            response = {"content": LoadConfig.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
                         "status": 500, 
                         "message": f"Error processing request: {str(e)}"}
@@ -170,7 +171,7 @@ class Pipeline:
                 template = PromptTemplate(input_variables=['question', 'user_info'], template=PROMPT_CHATCHIT)
                 response = self._execute_llm_call(self.llm_chatchit, template.format(question=query, user_info=self.user_info))
             else:
-                db_name = SYSTEM_CONFIG.ID_2_NAME_PRODUCT[product_id]
+                db_name = LoadConfig.ID_2_NAME_PRODUCT[product_id]
                 print("DB NAME: ", db_name)
                 context = self.chroma_seacher.get_context(query=query, product_name=db_name)
                 prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
@@ -178,7 +179,7 @@ class Pipeline:
                                                                               question=query, 
                                                                               user_info=self.user_info))
                 
-                specified_product_data_path = os.path.join(SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE.format(member_code=self.member_code), db_name + ".csv")
+                specified_product_data_path = os.path.join(LoadConfig.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE.format(member_code=self.member_code), db_name + ".csv")
                 specified_product_data  = pd.read_csv(os.path.join(specified_product_data_path))
                 response['products'] = self.pipeline_helper._product_seeking(output_from_llm=response['content'], 
                                                                              query_rewritten=query, 
@@ -189,7 +190,7 @@ class Pipeline:
             response['total_token'] += result_classify['total_token']
             response['total_cost'] += result_classify['total_cost']
         except Exception as e:
-            response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
+            response = {"content": LoadConfig.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
                         "status": 500, 
                         "message": f"Error processing request: {str(e)}"}
@@ -224,7 +225,7 @@ class Pipeline:
                                                                          query_rewritten= query, 
                                                                          dataframe=pd.DataFrame(products_info))
         except Exception as e:
-            response = {"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'], 
+            response = {"content": LoadConfig.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
                         "status": 500, 
                         "message": f"Error processing request: {str(e)}"}
@@ -304,7 +305,7 @@ class Pipeline:
             self.user_helper.save_conversation(phone_number=UserInfor['phone_number'], query=InputText, id_request=IdRequest, response=results['content'])
         
         except Exception as e:
-            storage_info_output.update({"content": SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system'],
+            storage_info_output.update({"content": LoadConfig.SYSTEM_MESSAGE['error_system'],
                                         "status": 500, 
                                         "message": f"Error processing request in func CHAT SESSION: {str(e)}"})
             logging.error("CHAT SESSION ERROR: " + str(e))

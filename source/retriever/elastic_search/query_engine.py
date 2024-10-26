@@ -5,16 +5,16 @@ from typing import Dict, List, Tuple, Optional
 from elasticsearch import Elasticsearch
 from utils import timing_decorator
 from .elastic_helper import ElasticHelper
-from configs import SYSTEM_CONFIG
+from configs.config_system import LoadConfig
 
 class ElasticQueryEngine:
-    NUMBER_SIZE_ELAS = SYSTEM_CONFIG.NUM_SIZE_ELAS
+    NUMBER_SIZE_ELAS = LoadConfig.NUM_SIZE_ELAS
     MATCH_THRESHOLD = 60
 
     def __init__(self, member_code: str):
         self.index_name = member_code.replace("-", "").lower()
         self.elastic_helper = ElasticHelper()
-        self.dataframe = pd.read_excel(SYSTEM_CONFIG.ALL_PRODUCT_FILE_MERGED_STORAGE.format(member_code=member_code))
+        self.dataframe = pd.read_excel(LoadConfig.ALL_PRODUCT_FILE_MERGED_STORAGE.format(member_code=member_code))
 
     def create_filter_range(self, field: str, value: str) -> Dict:
         """

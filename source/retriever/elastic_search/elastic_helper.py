@@ -4,11 +4,10 @@ import os
 import dotenv
 import pandas as pd
 import logging
-from icecream import ic
 from fuzzywuzzy import fuzz, process
 from elasticsearch import Elasticsearch
-from typing import Tuple, Dict, List
-from configs import SYSTEM_CONFIG
+from typing import Tuple, List
+from configs.config_system import LoadConfig
 
 dotenv.load_dotenv()
 
@@ -17,7 +16,7 @@ class ElasticHelper:
         pass
 
     @staticmethod
-    def init_elastic(df: pd.DataFrame, index_name: str = SYSTEM_CONFIG.INDEX_NAME) -> Elasticsearch:
+    def init_elastic(df: pd.DataFrame, index_name: str = LoadConfig.INDEX_NAME) -> Elasticsearch:
         print(df.columns.tolist())
         # Create the client instance
         # client = Elasticsearch(
@@ -94,15 +93,15 @@ class ElasticHelper:
                 }
             }
         }
-        result = client.search(index=SYSTEM_CONFIG.INDEX_NAME, body=query, size=10)
+        result = client.search(index=LoadConfig.INDEX_NAME, body=query, size=10)
         if result:
             print(result)
             print(f"\nCác document có trường '{field_name}':")
         else:
             print(f"\nKhông có document nào có trường '{field_name}'")
 
-        count = client.count(index=SYSTEM_CONFIG.INDEX_NAME)['count']
-        print(f"\nSố lượng document trong index {SYSTEM_CONFIG.INDEX_NAME}: {count}")
+        count = client.count(index=LoadConfig.INDEX_NAME)['count']
+        print(f"\nSố lượng document trong index {LoadConfig.INDEX_NAME}: {count}")
     
     @staticmethod
     def parse_string_to_dict(input_string: str) -> dict:
@@ -187,8 +186,8 @@ class ElasticHelper:
         """
 
         order, word = "asc", ""  # Default order
-        cheap_keywords = SYSTEM_CONFIG.CHEAP_KEYWORDS
-        expensive_keywords = SYSTEM_CONFIG.EXPENSIVE_KEYWORDS
+        cheap_keywords = LoadConfig.CHEAP_KEYWORDS
+        expensive_keywords = LoadConfig.EXPENSIVE_KEYWORDS
 
         for keyword in cheap_keywords:
             if keyword in specification.lower():

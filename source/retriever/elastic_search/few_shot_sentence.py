@@ -1,9 +1,8 @@
-from fuzzywuzzy import fuzz, process
-from typing import Dict, List
+from typing import Dict
 from langchain.prompts.few_shot import FewShotPromptTemplate
 from langchain.prompts.prompt import PromptTemplate
 from source.model.loader import ModelLoader
-from configs import SYSTEM_CONFIG, FEWSHOT_CONFIG
+from configs.config_fewshot import LoadConfig
 
 
 llm = ModelLoader().load_rag_model()
@@ -122,19 +121,19 @@ def classify_intent(question: str) -> Dict:
     }).content
 
     if "giá" in query_classified.lower():
-        examples = FEWSHOT_CONFIG.EXAMPLE_PRICE
+        examples = LoadConfig.EXAMPLE_PRICE
         json_fewshoted =  extract_info(question, examples)
     elif "công suất" in query_classified.lower():
-        examples = FEWSHOT_CONFIG.EXAMPLE_POWER
+        examples = LoadConfig.EXAMPLE_POWER
         json_fewshoted =  extract_info(question, examples)
     elif "khối lượng" in query_classified.lower():
-        examples = FEWSHOT_CONFIG.EXAMPLE_WEIGHT
+        examples = LoadConfig.EXAMPLE_WEIGHT
         json_fewshoted =  extract_info(question, examples)
     elif "dung tích" in query_classified.lower():
-        examples = FEWSHOT_CONFIG.EXAMPLE_VOLUME
+        examples = LoadConfig.EXAMPLE_VOLUME
         json_fewshoted =  extract_info(question, examples)
     else:
-        examples = FEWSHOT_CONFIG.EXAMPLE_QUANTITY
+        examples = LoadConfig.EXAMPLE_QUANTITY
         json_fewshoted =  extract_info(question, examples)
 
     return json_fewshoted

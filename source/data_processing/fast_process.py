@@ -7,8 +7,6 @@ from configs.config_system import LoadConfig
 from .convert_data import DataConverter
 from .indexing_data import DataIndexer
 
-config = LoadConfig()
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -16,8 +14,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-path_not_merge = LoadConfig().ALL_PRODUCT_FILE_NOT_MERGE_STORAGE
-path_merged = LoadConfig().ALL_PRODUCT_FILE_MERGED_STORAGE
+path_not_merge = LoadConfig.ALL_PRODUCT_FILE_NOT_MERGE_STORAGE
+path_merged = LoadConfig.ALL_PRODUCT_FILE_MERGED_STORAGE
 
 
 def fast_merge() -> pd.DataFrame:
@@ -27,7 +25,7 @@ def fast_merge() -> pd.DataFrame:
         'Content-Type': 'application/json'
     }
 
-    for code_member in config.MEMBER_CODE:
+    for code_member in LoadConfig.MEMBER_CODE:
         data = {
             "dataRequest": {
                 "keyWord": None,
@@ -84,9 +82,9 @@ def fast_merge() -> pd.DataFrame:
 def create_directory_structure( member_code: str) -> None:
         """Create necessary directory structure for data processing."""
         try:
-            Path(config.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE.format(
+            Path(LoadConfig.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE.format(
                 member_code=member_code)).mkdir(parents=True, exist_ok=True)
-            Path(config.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE.format(
+            Path(LoadConfig.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE.format(
                 member_code=member_code)).mkdir(parents=True, exist_ok=True)
             logger.info(f"Created directory structure for member {member_code}")
         except Exception as e:
@@ -96,10 +94,10 @@ def create_directory_structure( member_code: str) -> None:
 def indexing_data():
     from unidecode import unidecode
 
-    for member_code in config.MEMBER_CODE:
+    for member_code in LoadConfig.MEMBER_CODE:
         create_directory_structure(member_code)
         all_data_path = path_merged.format(member_code=member_code)
-        path_csv_folder = LoadConfig().SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE.format(member_code=member_code)
+        path_csv_folder = LoadConfig.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE.format(member_code=member_code)
         df = pd.read_excel(all_data_path)
 
         for group_name, group_data in df.groupby('group_product_name'):

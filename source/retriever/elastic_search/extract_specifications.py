@@ -1,9 +1,6 @@
-
-from openai import OpenAI
-import json
-import ast
 import os
 import dotenv
+from openai import OpenAI
 from .elastic_helper import ElasticHelper 
 
 

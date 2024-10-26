@@ -1,6 +1,5 @@
 import time
 import schedule
-from configs.config_system import SYSTEM_CONFIG
 from source.data_processing.processor import DataProcessingPipeline
 
 pipeline = DataProcessingPipeline()

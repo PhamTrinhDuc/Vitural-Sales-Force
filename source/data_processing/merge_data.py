@@ -4,7 +4,6 @@ import logging
 from unidecode import unidecode
 from typing import Literal, Optional
 from configs.config_system import LoadConfig
-CONFIG_SYSTEM = LoadConfig()
 
 class DataMerger:
     def __init__(self, 
@@ -60,7 +59,7 @@ class DataMerger:
     def group_data( 
             member_code: str, 
             df: pd.DataFrame,
-            folder_data_csv: str = CONFIG_SYSTEM.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE):
+            folder_data_csv: str = LoadConfig.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE):
         try:
             for group_name, group_data in df.groupby('group_product_name'):
                 # Xóa dấu và thay thế bằng dấu gạch dưới

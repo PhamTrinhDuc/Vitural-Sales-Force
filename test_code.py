@@ -99,20 +99,20 @@
 # print(response)
 
 ######### TEST CHAT API CALL ########
-from source.generate.chat_seasion import Pipeline 
-from api.handle_request import handle_request
+# from source.generate.chat_seasion import Pipeline 
+# from api.handle_request import handle_request
 
-response = handle_request(
-    InputText = "cho tôi xem diều hòa bán chạy",
-    UserName="Hiệp",
-    IdRequest="9989",
-    PhoneNumber='08354945868',
-    Address='Hà Nội',
-    MemberCode="G-MIMWPJ",
-    Voice = None,
-    Image=None,
-    NameBot=None)
-print(response)
+# response = handle_request(
+#     InputText = "cho tôi xem diều hòa bán chạy",
+#     UserName="Hiệp",
+#     IdRequest="9989",
+#     PhoneNumber='08354945868',
+#     Address='Hà Nội',
+#     MemberCode="G-MIMWPJ",
+#     Voice = None,
+#     Image=None,
+#     NameBot=None)
+# print(response)
 
 # from utils.user_helper import UserHelper
 # UserHelper().save_conversation(phone_number="0123456789", id_request="123", query="gmsdgsdm", response="sdmn")
@@ -166,3 +166,9 @@ print(response)
 # from source.data_processing.fast_process import fast_merge, indexing_data
 # fast_merge()
 # indexing_data()
+
+
+class Test: 
+    name: str = "k"
+
+print(Test.name)

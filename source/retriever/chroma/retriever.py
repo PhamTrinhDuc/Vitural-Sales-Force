@@ -2,7 +2,6 @@ import os
 import pickle
 import dotenv
 from typing import List, Tuple, Optional
-from dataclasses import dataclass
 from langchain_core.documents import Document
 from langchain_community.vectorstores import Chroma
 from langchain.retrievers import EnsembleRetriever
@@ -10,35 +9,24 @@ from langchain_community.retrievers import BM25Retriever
 from langchain_openai import OpenAIEmbeddings
 from utils import timing_decorator
 from ...model.loader import ModelLoader
-from configs import SYSTEM_CONFIG
+from configs.config_system import LoadConfig
 
 dotenv.load_dotenv()
 
-@dataclass
-class RetrieverConfig:
-    """Configuration for Retriever"""
-    text_data_path: str = SYSTEM_CONFIG.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE
-    vector_db_path: str = SYSTEM_CONFIG.VECTOR_DATABASE_STORAGE
-    top_k_products: int = SYSTEM_CONFIG.TOP_K_PRODUCT
-    num_products: int = SYSTEM_CONFIG.NUM_PRODUCT
-
 class DocumentManager:
     """Manages document operations and storage"""
-    
-    def __init__(self, config: RetrieverConfig):
-        self.config = config
     
     def get_document_paths(self, 
                            member_code: str, 
                            product_name: str) -> Tuple[str, str]:
         """Get file and database paths for a product"""
         file_path = os.path.join(
-            self.config.text_data_path.format(member_code=member_code), 
+            LoadConfig.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE.format(member_code=member_code), 
             f"{product_name}.pkl"
             )
         
         db_path = os.path.join(
-            self.config.vector_db_path.format(member_code=member_code), 
+            LoadConfig.VECTOR_DATABASE_STORAGE.format(member_code=member_code), 
             product_name
             )
         return file_path, db_path
@@ -70,9 +58,6 @@ class VectorDBHandler:
 class RetrieverBuilder:
     """Builds and configures retrievers"""
     
-    def __init__(self, config: RetrieverConfig):
-        self.config = config
-    
     def build_ensemble_retriever(self, vector_db: Chroma, documents: List[Document]) -> EnsembleRetriever:
         """Build ensemble retriever combining BM25 and vector similarity"""
         bm25_retriever = self._create_bm25_retriever(documents)
@@ -100,13 +85,11 @@ class ChromaQueryEngine:
     """Main retriever class coordinating document retrieval operations"""
     
     def __init__(self, 
-                 member_code: str,
-                 config: Optional[RetrieverConfig] = None):
+                 member_code: str,):
         self.member_code = member_code
-        self.config = config or RetrieverConfig()
-        self.doc_manager = DocumentManager(self.config)
+        self.doc_manager = DocumentManager()
         self.vector_handler = VectorDBHandler()
-        self.retriever_builder = RetrieverBuilder(self.config)
+        self.retriever_builder = RetrieverBuilder()
 
     def _load_product_data(self, product_name: str, member_code: str) -> Tuple[List[Document], Chroma]:
         """Load data for a specific product"""

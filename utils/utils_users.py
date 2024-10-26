@@ -4,13 +4,13 @@ import logging
 import os
 import json
 from typing import List, Dict, Union
-from configs import SYSTEM_CONFIG
+from configs.config_system import LoadConfig
 
 
 class UserHelper:
     def __init__(self):
-        self.CONVERSATION_PATH  = SYSTEM_CONFIG.CONVERSATION_STORAGE
-        self.INFO_USER_PATH = SYSTEM_CONFIG.INFO_USER_STORAGE
+        self.CONVERSATION_PATH  = LoadConfig.CONVERSATION_STORAGE
+        self.INFO_USER_PATH = LoadConfig.INFO_USER_STORAGE
         os.makedirs(self.CONVERSATION_PATH, exist_ok=True)
         os.makedirs(self.INFO_USER_PATH, exist_ok=True)
         
@@ -99,7 +99,7 @@ class UserHelper:
                     with open(user_specific_conversation, 'r') as f:
                         conversation = json.load(f)
                         if id_request in conversation:
-                            conversation =  conversation[id_request][-SYSTEM_CONFIG.TOP_CONVERSATION:]
+                            conversation =  conversation[id_request][-LoadConfig.TOP_CONVERSATION:]
                             for conv in conversation:
                                 conv['human'] = self._clean_html(conv['human'])
                                 conv['ai'] = self._clean_html(conv['ai'])

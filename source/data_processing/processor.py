@@ -19,15 +19,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class DataProcessingPipeline:
-    def __init__(self, config: LoadConfig = LoadConfig()):
-        self.config = config
         
     def create_directory_structure(self, member_code: str) -> None:
         """Create necessary directory structure for data processing."""
         try:
-            Path(self.config.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE.format(
+            Path(LoadConfig.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE.format(
                 member_code=member_code)).mkdir(parents=True, exist_ok=True)
-            Path(self.config.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE.format(
+            Path(LoadConfig.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE.format(
                 member_code=member_code)).mkdir(parents=True, exist_ok=True)
             logger.info(f"Created directory structure for member {member_code}")
         except Exception as e:
@@ -132,11 +130,11 @@ class DataProcessingPipeline:
         
         """Process data for all specified members."""
         if all_product_merged is None:
-            all_product_merged = self.config.ALL_PRODUCT_FILE_MERGED_STORAGE
+            all_product_merged = LoadConfig.ALL_PRODUCT_FILE_MERGED_STORAGE
         if all_product_not_merge is None:
-            all_product_not_merge = self.config.ALL_PRODUCT_FILE_NOT_MERGE_STORAGE
+            all_product_not_merge = LoadConfig.ALL_PRODUCT_FILE_NOT_MERGE_STORAGE
         if member_codes is None:
-            member_codes = self.config.MEMBER_CODE
+            member_codes = LoadConfig.MEMBER_CODE
 
         for member_code in member_codes:
             # if member_code != "G-JLVIYR":  # TODO: Remove this condition if not needed

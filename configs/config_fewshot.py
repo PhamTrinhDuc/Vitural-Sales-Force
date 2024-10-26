@@ -420,5 +420,3 @@ class LoadConfig:
             "volume":"",
             "specifications":"số lượng"
         }]
-
-FEWSHOT_CONFIG = LoadConfig()

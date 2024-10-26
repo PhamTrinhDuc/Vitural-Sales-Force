@@ -1,16 +1,16 @@
 import pandas as pd
 import logging
 import psycopg2
-from configs.config_system import SYSTEM_CONFIG
+from configs.config_system import LoadConfig
 
 class PostgreHandler:
     def __init__(self):
-        self.host = SYSTEM_CONFIG.POSTGRES_HOST
-        self.database_name = SYSTEM_CONFIG.POSTGRES_DB_NAME
-        self.password = SYSTEM_CONFIG.POSTGRES_PASSWORD
-        self.user = SYSTEM_CONFIG.POSTGRES_USER
-        self.port = SYSTEM_CONFIG.POSTGRES_PORT
-        self.max_timeout = SYSTEM_CONFIG.POSTGRE_TIMEOUT
+        self.host = LoadConfig.POSTGRES_HOST
+        self.database_name = LoadConfig.POSTGRES_DB_NAME
+        self.password = LoadConfig.POSTGRES_PASSWORD
+        self.user = LoadConfig.POSTGRES_USER
+        self.port = LoadConfig.POSTGRES_PORT
+        self.max_timeout = LoadConfig.POSTGRE_TIMEOUT
         self.connector, error = self.connect_to_postgre()
         # self.create_table()
 

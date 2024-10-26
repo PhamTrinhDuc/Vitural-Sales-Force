@@ -122,5 +122,3 @@ class LoadConfig:
     SYSTEM_MESSAGE = {"error_system": "Đã có vấn đề xảy ra, anh/ chị vui lòng đặt lại câu hỏi để được hỗ trợ ạ!",
                       "end_message": f"""Cảm ơn anh/chị đã quan tâm đến sản phẩm và dịch vụ của Viettel Construction. Nếu có bất kì thắc mắc hay câu hỏi xin vui lòng liên hệ đến tổng đài: <a href="tel:18009377">18009377</a>.""",
                       "question_other": "Hiện tại, bên em chưa có thông tin về câu hỏi này. Anh/ chị có thể liên hệ đến tổng đài: 18009377 để được tư vấn thêm & hỗ trợ. Em xin chân thành cảm ơn!"} # lỗi
-    
-SYSTEM_CONFIG = LoadConfig()
