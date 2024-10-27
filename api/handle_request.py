@@ -5,7 +5,7 @@ import os
 from typing import Dict, Optional
 from source.generate.chat_seasion import Pipeline
 from utils.utils_pipeline import HelperPiline
-from configs import SYSTEM_CONFIG
+from configs.config_system import LoadConfig
 
 HELPER = HelperPiline()
 
@@ -40,7 +40,7 @@ def handle_request(
         "status": 200, 
         "message": "", 
         "time_processing": "", 
-        "end_message": SYSTEM_CONFIG.SYSTEM_MESSAGE['end_message'],
+        "end_message": LoadConfig.SYSTEM_MESSAGE['end_message'],
     }
     MemberCode = MemberCode if MemberCode is not None else "normal"
     Users = {
@@ -61,15 +61,15 @@ def handle_request(
             results.update(**response)
             
         elif InputText == 'first_text' or InputText == None:
-            results["terms"] = SYSTEM_CONFIG.BUTTON
-            results["content"] = random.choice(SYSTEM_CONFIG.MESSAGE)
+            results["terms"] = LoadConfig.BUTTON
+            results["content"] = random.choice(LoadConfig.MESSAGE)
         else:
             results['message'] = 'Invalid input or missing data.'
             results['status'] = 400
 
     except Exception as e:
         results['status'] = 500
-        results['content'] = SYSTEM_CONFIG.SYSTEM_MESSAGE['error_system']
+        results['content'] = LoadConfig.SYSTEM_MESSAGE['error_system']
         results['message'] = str(e)
 
     results['time_processing'] = f"{time.time() - start_time:.2f}s"
@@ -77,7 +77,7 @@ def handle_request(
 
 def handle_title_conversation(phone_number: None) -> dict:
     data = {"data": []}
-    user_specific_conversation = os.path.join(SYSTEM_CONFIG.CONVERSATION_STORAGE, phone_number)
+    user_specific_conversation = os.path.join(LoadConfig.CONVERSATION_STORAGE, phone_number)
     for session_path in os.listdir(user_specific_conversation):
         session_conv_path = os.path.join(user_specific_conversation, session_path)
         with open(session_conv_path, mode='r', encoding='utf-8') as f:
@@ -89,7 +89,7 @@ def handle_title_conversation(phone_number: None) -> dict:
     return data
 
 def hanle_conversation(phone_number: None, session_id: None) -> dict:
-    session_conv_path = os.path.join(SYSTEM_CONFIG.CONVERSATION_STORAGE, phone_number, session_id + '.json')
+    session_conv_path = os.path.join(LoadConfig.CONVERSATION_STORAGE, phone_number, session_id + '.json')
     with open(session_conv_path, mode='r', encoding='utf-8') as f:
             conversation = json.load(f)
     
