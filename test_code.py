@@ -9,13 +9,13 @@
 # response = search_db(demands=demands)
 # print(response[0])
 
-# from source.retriever.elastic_search.extract_specifications import extract_info
-# from source.retriever.elastic_search.query_engine_cp import search_db
+from source.retriever.elastic_search.extract_specifications import extract_info
+from source.retriever.elastic_search.query_engine_cp import ElasticQueryEngine
 
-# query = "Điều hòa MDV 1 chiều 12000 BTU - Model 2023 bên bạn có không ?"
-# demands = extract_info(query=query)
-# response = search_db(demands=demands)
-# print(response[0])
+query = "Điều hòa MDV 1 chiều 12000 BTU - Model 2023 bên bạn có không ?"
+demands = extract_info(query=query)
+response = ElasticQueryEngine(member_code="NORMAL").search_db(demands=demands)
+print(response[0])
 
 # from source.retriever.elastic_search.elastic_helper import ElasticHelper
 # es = ElasticHelper()
@@ -166,9 +166,3 @@
 # from source.data_processing.fast_process import fast_merge, indexing_data
 # fast_merge()
 # indexing_data()
-
-
-class Test: 
-    name: str = "k"
-
-print(Test.name)
