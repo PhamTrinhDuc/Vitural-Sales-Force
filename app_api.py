@@ -14,7 +14,7 @@ async def post_request(
     nameBot: str = Form(...),
     phoneNumber: str = Form(...),
     userName: str = Form(...),
-    memberCode: str = Form(...),
+    memberCode: str = Form(None),
     inputText: str = Form(None),
     address: str = Form(None),
     image: UploadFile = File(None),
