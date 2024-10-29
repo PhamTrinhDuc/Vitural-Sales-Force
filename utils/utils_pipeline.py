@@ -1,12 +1,11 @@
 # Helper functions
 import re
+import json
 import markdown
 import logging 
 import pandas as pd
 from typing import List, Dict, Any, Union
 from source.model.loader import ModelLoader
-
-
 
 class HelperPiline:
     def __init__(self):
@@ -109,7 +108,11 @@ class HelperPiline:
                 <li><strong>Sản phẩm:</strong> Điều hòa MDV - Inverter 9000 BTU  </li>
                 <li><strong>Số lượng:</strong> 3 cái  </li>
                 <li><strong>Giá 1 sản phẩm:</strong> 6,000,000 đồng  </li>
-        Format output: 3 | 6,000,000
+        Format output: 
+        {
+            "amount": 3,
+            "price": 6,000,000
+        }
         ---------
         From đơn hàng:
         {output_from_llm}
@@ -118,17 +121,17 @@ class HelperPiline:
         try: 
             result = {}
             response = llm.invoke(AMOUNT_PROMPT.format(output_from_llm=output_from_llm)).content
-            if '|' in response:
-                amount = response.split("|")[0].strip()
-                price = response.split("|")[1].strip()
-                print("AMOUNT: ", amount)
-                print("PRICE: ", price)
-                if amount:
-                    result['amount'] = self._extract_single_number(text=amount, mode='amount')
-                if price: 
-                    result['price'] = self._extract_single_number(text=price, mode='price')
+            response_json = json.loads(response)
+            amount = response_json.get("amount", "")
+            price = response_json.get("price", "")
+            print("AMOUNT: ", amount)
+            print("PRICE: ", price)
+            if amount:
+                result['amount'] = self._extract_single_number(text=amount, mode='amount')
+            if price: 
+                result['price'] = self._extract_single_number(text=price, mode='price')
             else:
-                return result
+                return results
             
             for index, row in dataframe.iterrows():
                 if any(str(item).lower() in output_from_llm.lower() or str(item).lower() in query_rewritten.lower() 

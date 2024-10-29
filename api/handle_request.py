@@ -9,7 +9,6 @@ from configs.config_system import LoadConfig
 
 HELPER = HelperPiline()
 
-
 def handle_request(
     InputText: None,
     IdRequest: None,
