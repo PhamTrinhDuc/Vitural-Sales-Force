@@ -14,6 +14,7 @@ os.environ['OPENAI_API_KEY'] = os.getenv("OPENAI_API_KEY")
 class LoadConfig:
     # API CONFIG
     MEMBER_CODE = ['G-JLVIYR', 'G-XNAWVM', 'G-MIMWPJ', 'G-QAXOHL', "NORMAL"]
+    TIMEOUT = 50
     # MEMBER_CODE = [index.replace("-", "").lower() for index in MEMBER_CODE]
     
     # SEVER CONFIG
@@ -62,7 +63,6 @@ class LoadConfig:
     INFO_USER_STORAGE = 'security/info_user_storage' 
 
     # LLM_CONFIG
-    TIMEOUT = 50
     GPT_MODEL = 'gpt-4o-mini-2024-07-18'
     TEMPERATURE_RAG = 0.2
     TEMPERATURE_CHAT = 0.5
