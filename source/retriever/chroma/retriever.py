@@ -71,14 +71,14 @@ class RetrieverBuilder:
     def _create_bm25_retriever(self, documents: List[Document]) -> BM25Retriever:
         """Create BM25 retriever"""
         retriever = BM25Retriever.from_documents(documents)
-        retriever.k = self.config.top_k_products
+        retriever.k = LoadConfig.TOP_K_PRODUCT
         return retriever
     
     def _create_vanilla_retriever(self, vector_db: Chroma):
         """Create vanilla vector similarity retriever"""
         return vector_db.as_retriever(
             search_type="similarity",
-            search_kwargs={"k": self.config.top_k_products}
+            search_kwargs={"k": LoadConfig.TOP_K_PRODUCT}
         )
 
 class ChromaQueryEngine:
