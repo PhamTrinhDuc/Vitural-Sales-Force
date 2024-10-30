@@ -8,7 +8,6 @@ from .elastic_helper import ElasticHelper
 from configs.config_system import LoadConfig
 
 class ElasticQueryEngine:
-    NUMBER_SIZE_ELAS = LoadConfig.NUM_SIZE_ELAS
     MATCH_THRESHOLD = 60
 
     def __init__(self, member_code: str):
@@ -79,7 +78,7 @@ class ElasticQueryEngine:
                     ]
                 }
             },
-            "size": ElasticQueryEngine.NUMBER_SIZE_ELAS
+            "size": LoadConfig.NUM_SIZE_ELAS
         }
 
         for field, value in [('lifecare_price', price), ('power', power), ('weight', weight), ('volume', volume)]:

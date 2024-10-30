@@ -17,7 +17,6 @@ class ElasticHelper:
 
     @staticmethod
     def init_elastic(df: pd.DataFrame, index_name: str = LoadConfig.INDEX_NAME) -> Elasticsearch:
-        print(df.columns.tolist())
         # Create the client instance
         # client = Elasticsearch(
         # # For local development
@@ -26,6 +25,7 @@ class ElasticHelper:
         client = Elasticsearch(
             cloud_id=os.getenv("ELASTIC_CLOUD_ID"),
             api_key=os.getenv("ELASTIC_API_KEY"),
+            timeout=LoadConfig.TIMEOUT
         )
         # Define the mappings
         mappings = {

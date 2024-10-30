@@ -5,7 +5,7 @@ from typing import List, Optional, Dict, Union, Any
 from sklearn.metrics.pairwise import cosine_similarity
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from configs import SYSTEM_CONFIG
+from configs.config_system import LoadConfig
 from source.prompt.template import PROMPT_SIMILAR_PRODUCT
 from source.model.loader import ModelLoader
 from utils import timing_decorator
@@ -15,8 +15,8 @@ class SimilarProductSearchEngine:
     def __init__(self, 
                  product_find: str,
                  user_info: Dict[str, Any],
-                 product_similar_path: Optional[str] = SYSTEM_CONFIG.SIMILAR_PRODUCT_STORAGE,
-                 product_origin_path: Optional[str] = SYSTEM_CONFIG.ALL_PRODUCT_FILE_MERGED_STORAGE):
+                 product_similar_path: Optional[str] = LoadConfig.SIMILAR_PRODUCT_STORAGE,
+                 product_origin_path: Optional[str] = LoadConfig.ALL_PRODUCT_FILE_MERGED_STORAGE):
         
         self.model_embed = ModelLoader().load_embed_baai_model()
         self.llm = ModelLoader().load_rag_model()

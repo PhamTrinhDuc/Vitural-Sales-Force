@@ -11,7 +11,9 @@ from source.model.loader import ModelLoader
 from langchain_community.callbacks.manager import get_openai_callback
 from source.retriever.chroma.retriever import ChromaQueryEngine
 from source.router.router import decision_search_type, classify_product
-from source.retriever.elastic_search import ElasticQueryEngine, classify_intent
+# from source.retriever.elastic_search import ElasticQueryEngine, classify_intent
+from source.retriever.elastic_search.query_engine_cp import ElasticQueryEngine
+from source.retriever.elastic_search.extract_specifications import extract_info
 from source.similar_product.searcher import SimilarProductSearchEngine
 from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_CHATCHIT, PROMPT_ORDER
 from utils import GradeReWrite, UserHelper, timing_decorator, PostgreHandler, HelperPiline
@@ -211,7 +213,7 @@ class Pipeline:
         
         """
         try:
-            demands = classify_intent(query)
+            demands = extract_info(query)
             response_elastic, products_info = self.els_seacher.search_db(demands)
 
             prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)

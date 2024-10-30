@@ -3,8 +3,9 @@ from fastapi import FastAPI, Form
 from fastapi import FastAPI, File, UploadFile
 from fastapi import FastAPI, UploadFile, Form, File
 from api.handle_request import handle_request, handle_title_conversation, hanle_conversation
+from configs.config_system import LoadConfig
 
-from configs import SYSTEM_CONFIG
+
 app = FastAPI()
 numberrequest = 0
 
@@ -30,6 +31,7 @@ async def post_request(
     print("InputText  = ", inputText)
 
     results = handle_request(
+        timeout_seconds=LoadConfig.TIMEOUT,
         InputText=inputText,
         IdRequest=idRequest,
         UserName=userName,
@@ -64,5 +66,5 @@ async def post_session(
     data = hanle_conversation(phone_number=phoneNumber, session_id=sessionId)
     return data
 
-uvicorn.run(app, host="0.0.0.0", port=SYSTEM_CONFIG.PORT)
+uvicorn.run(app, host="0.0.0.0", port=LoadConfig.PORT)
 # uvicorn.run(app, host="0.0.0.0", port=8088)

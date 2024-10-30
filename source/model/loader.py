@@ -12,7 +12,7 @@ class ModelLoader:
         self.MAX_TOKEN = LoadConfig.MAX_TOKEN
     
     def load_embed_openai_model(self) -> OpenAIEmbeddings:
-            embedding_model = OpenAIEmbeddings(model = self.EMBEDDING_OPENAI)
+            embedding_model = OpenAIEmbeddings(model = self.EMBEDDING_OPENAI, timeout=LoadConfig.TIMEOUT)
             return embedding_model
         
     def load_embed_baai_model(self) -> TextEmbedding:
@@ -23,7 +23,8 @@ class ModelLoader:
         rag_model = ChatOpenAI(
             model=self.GPT_MODEL,
             temperature=self.TEMPERATURE_RAG,
-            max_tokens=self.MAX_TOKEN
+            max_tokens=self.MAX_TOKEN,
+            timeout=LoadConfig.TIMEOUT
         )
         return rag_model
     
@@ -31,6 +32,7 @@ class ModelLoader:
         chatchit_model = ChatOpenAI(
             model=self.GPT_MODEL,
             temperature=self.TEMPERATURE_CHAT,
-            max_tokens=self.MAX_TOKEN
+            max_tokens=self.MAX_TOKEN,
+            timeout=LoadConfig.TIMEOUT
         )
         return chatchit_model

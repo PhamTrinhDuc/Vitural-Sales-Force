@@ -137,11 +137,13 @@ class ElasticQueryEngine:
         queries = []
         # tìm sản phẩm gần nhất trong list_products
         match_product, match_score = ElasticHelper().find_closest_match(product_name, list_products)
+        print(match_product)
         # nếu độ match không đạt ngưỡng MATCH_THRESHOLD thì trả về kết quả rỗng
         if match_score < ElasticQueryEngine.MATCH_THRESHOLD:
             return "", []
         # tạo query cho từng sản phẩm
         group_product = self.dataframe[self.dataframe['group_name'] == match_product]['group_product_name'].iloc[0]
+        print(group_product)
         query = self.create_elasticsearch_query(
             group_product, product_name, demands.get('specifications'),
             price, demands.get('power'), demands.get('weight'), demands.get('volume')

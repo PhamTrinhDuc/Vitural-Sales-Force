@@ -2,6 +2,7 @@ import random
 import time
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from typing import Dict, Optional
 from source.generate.chat_seasion import Pipeline
 from utils.utils_pipeline import HelperPiline
@@ -10,6 +11,7 @@ from configs.config_system import LoadConfig
 HELPER = HelperPiline()
 
 def handle_request(
+    timeout_seconds: None,
     InputText: None,
     IdRequest: None,
     UserName: None,
@@ -18,61 +20,72 @@ def handle_request(
     Image: None,
     Voice: None,
     Address: None,
-    PhoneNumber: None):
+    PhoneNumber: None
+):
     """
-
-    Hàm chính để tương tác với người dùng, dựa vào query, user_name, seasion_id của người dùng, đưa qua pipeline và trả về câu trả lời.
-    Args:
-        - query: câu hỏi của người dùng
-        - user_name: tên người dùng
-        - seasion_id: id cuộc hội thoại của người dùng.
-    Returns:
-        - trả về câu trả lời cho người dùng.
+    Wrapper function to handle request with timeout
     """
-    
-    start_time = time.time()
-    results = {
-        "products": [], 
-        'product_confirms': [], 
-        "terms": [], 
-        "content": "",
-        "status": 200, 
-        "message": "", 
-        "time_processing": "", 
-        "end_message": LoadConfig.SYSTEM_MESSAGE['end_message'],
-    }
-    MemberCode = MemberCode if MemberCode is not None else "normal"
-    Users = {
-        "phone_number": PhoneNumber,
-        "name": UserName,
-    }
+    def execute_request():
+        start_time = time.time()
+        results = {
+            "products": [], 
+            'product_confirms': [], 
+            "terms": [], 
+            "content": "",
+            "status": 200, 
+            "message": "", 
+            "time_processing": "", 
+            "end_message": LoadConfig.SYSTEM_MESSAGE['end_message'],
+        }
+        MemberCode_local = MemberCode if MemberCode is not None else "normal"
+        Users = {
+            "phone_number": PhoneNumber,
+            "name": UserName,
+        }
 
-    try:
-        if InputText not in("terms", 'first_text', None):
-            response = Pipeline(member_code=MemberCode).chat_session(
-                InputText=InputText, 
-                IdRequest=IdRequest, 
-                NameBot=NameBot, 
-                Voice=Voice, 
-                Image=Image, 
-                UserInfor=Users)
-            
-            results.update(**response)
-            
-        elif InputText == 'first_text' or InputText == None:
-            results["terms"] = LoadConfig.BUTTON
-            results["content"] = random.choice(LoadConfig.MESSAGE)
-        else:
-            results['message'] = 'Invalid input or missing data.'
-            results['status'] = 400
+        try:
+            if InputText not in ("terms", 'first_text', None):
+                response = Pipeline(member_code=MemberCode_local).chat_session(
+                    InputText=InputText, 
+                    IdRequest=IdRequest, 
+                    NameBot=NameBot, 
+                    Voice=Voice, 
+                    Image=Image, 
+                    UserInfor=Users)
+                
+                results.update(**response)
+                
+            elif InputText == 'first_text' or InputText == None:
+                results["terms"] = LoadConfig.BUTTON
+                results["content"] = random.choice(LoadConfig.MESSAGE)
+            else:
+                results['message'] = 'Invalid input or missing data.'
+                results['status'] = 400
 
-    except Exception as e:
-        results['status'] = 500
-        results['content'] = LoadConfig.SYSTEM_MESSAGE['error_system']
-        results['message'] = str(e)
+        except Exception as e:
+            results['status'] = 500
+            results['content'] = LoadConfig.SYSTEM_MESSAGE['error_system']
+            results['message'] = str(e)
 
-    results['time_processing'] = f"{time.time() - start_time:.2f}s"
-    return results
+        results['time_processing'] = f"{time.time() - start_time:.2f}s"
+        return results
+
+    # Thực thi với timeout
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(execute_request)
+        try:
+            return future.result(timeout=timeout_seconds)
+        except TimeoutError:
+            return {
+                "products": [], 
+                'product_confirms': [], 
+                "terms": [], 
+                "content": LoadConfig.SYSTEM_MESSAGE['error_system'],
+                "status": 408,  # HTTP Status Code for Request Timeout
+                "message": f"Request timed out after {timeout_seconds} seconds", 
+                "time_processing": f"{timeout_seconds:.2f}s",
+                "end_message": LoadConfig.SYSTEM_MESSAGE['end_message'],
+            }
 
 def handle_title_conversation(phone_number: None) -> dict:
     data = {"data": []}

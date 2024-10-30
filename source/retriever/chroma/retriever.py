@@ -48,7 +48,7 @@ class VectorDBHandler:
             return Chroma.from_documents(
                 documents=documents,
                 embedding=self.embedding_model,
-                persist_directory=db_path
+                persist_directory=db_path,
             )
         return Chroma(
             persist_directory=db_path,

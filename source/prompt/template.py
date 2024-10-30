@@ -88,14 +88,14 @@ PROMPT_HISTORY = """
         Cấu trúc: [Câu hỏi đã chỉnh sửa]
         Một số trường hợp không cần viết lại, nhưng vẫn cần hiểu và linh hoạt.
             VD1: 
-                Q: Tôi muốn xem những loại điều hòa giá rẻ.
+                Q: Tôi muốn xem những loại máy lạnh giá rẻ.
                 A: Đưa ra 2 sản phẩm liên quan kèm tên hãng và giá:
                         1. Điều hòa MDV 9000BTU giá 6,000,000 đồng.
                         2. Điều hòa MDV 12000BTU giá 9,000,000 đồng.
                 Q: Tôi muốn xem sản phẩm số 2.
                 => rewrite: Tôi muốn xem sản phẩm điều hòa MDV 12000BTU.
             VD2:
-                Q: chốt đơn cho tôi điều hòa MDV 9000 BTU
+                Q: chốt đơn cho tôi máy lạnh MDV 9000 BTU
                 A: Em xin chốt đơn cho anh với sản phẩm điều hòa MDV 9000 BTU 1 chiều Inverter có Mã sản phẩm: 606.038 và giá 6,000,000 đồng. Anh/chị muốn mua bao nhiêu cái ạ?
                 Q: 5 cái
                 => rewrite: Chốt đơn cho anh 5 cái điều hòa MDV 9000 BTU 1 chiều Inverter, Mã sản phẩm: 606038, giá 6,000,000 đồng.
