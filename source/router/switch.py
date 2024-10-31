@@ -8,6 +8,10 @@ first_tools = [
                 "parameters": {
                     "type": "object",
                     "properties": {
+                        "group": {
+                            "type": "string",
+                            "description": f"""lấy ra nhóm sản phẩm có trong câu hỏi có trong list : {LoadConfig.LIST_GROUP_NAME}"""
+                        },
                         "object": {
                             "type": "string",
                             "description": "tên sản phẩm có trong câu hỏi của người dùng.",
@@ -29,7 +33,7 @@ first_tools = [
                             "description": "dung tích của sản phẩm có trong câu hỏi của người dùng. Ví dụ : 1 lít, 3 mét khối ..."
                         },
                     },
-                    "required": ["object", "price", "power", "weight", "volume"],
+                    "required": ["group", "object", "price", "power", "weight", "volume"],
                 },
             },
         },
@@ -73,9 +77,10 @@ first_tools = [
     ]
 
 
-from openai import OpenAI
 import os
 import dotenv
+from openai import OpenAI
+from configs.config_system import LoadConfig
 dotenv.load_dotenv()
 
 os.environ['LANGCHAIN_TRACING_V2'] = 'true'

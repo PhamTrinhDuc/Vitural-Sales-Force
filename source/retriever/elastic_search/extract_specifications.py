@@ -2,6 +2,7 @@ import os
 import dotenv
 from openai import OpenAI
 from .elastic_helper import ElasticHelper 
+from configs.config_system import LoadConfig
 
 
 dotenv.load_dotenv()
@@ -20,6 +21,11 @@ tools = [
                 "parameters": {
                     "type": "object",
                     "properties": {
+                        "group": {
+                            "type": "string",
+                            "description": f"""lấy ra nhóm sản phẩm có trong câu hỏi từ list: {LoadConfig.LIST_GROUP_NAME}. 
+                            Chỉ trả ra tên group có trong list đã cho trước"""
+                        },
                         "object": {
                             "type": "string",
                             "description": "tên hoặc loại sản phẩm có trong câu hỏi. Ví dụ: điều hòa, điều hòa MDV 9000BTU, máy giặt LG ...",
@@ -41,14 +47,14 @@ tools = [
                             "description": "dung tích của sản phẩm có trong câu hỏi. Ví dụ : 1 lít, 3 mét khối ..."
                         },
                     },
-                    "required": ["object", "price", "power", "weight", "volume"],
+                    "required": ["group", "object", "price", "power", "weight", "volume"],
                 },
             },
         }
     ]
 
 def extract_info(query: str):
-    client = OpenAI()
+    client = OpenAI(timeout=LoadConfig.TIMEOUT)
 
     messages = [
         {'role': 'system', 'content': '''Bạn là 1 chuyên gia extract thông tin từ câu hỏi. 
@@ -56,11 +62,11 @@ def extract_info(query: str):
         Lưu ý:
             + nếu câu hỏi hỏi về các thông số lớn, nhỏ, rẻ, đắt... thì trả ra cụm đó. 
             + Nếu không có thông số nào thì trả ra '' cho thông số ấy.
-            + 1 số tên sản phẩm có chứa cả thông số thì bạn cần tách thông số đó sang trường của thông số đó.'''},
+            + 1 số tên sản phẩm có chứa cả thông số thì bạn cần tách thông số đó sang trường của thông số đó'''},
         {"role": "user", "content": query}]
 
     openai_response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=messages,
             tools=tools,
             tool_choice="auto",  # auto is default, but we'll be explicit
@@ -75,10 +81,12 @@ def extract_info(query: str):
     #         print(f"Arguments: {openai_response.choices[0].message.tool_calls[i].function.arguments}\n")
 
 
+def main():
+    arguments = extract_info("Tôi muốn mua điều hòa rẻ nhất")
+    json_arguments = ElasticHelper().parse_string_to_dict(arguments)
+    print(json_arguments)
+    for key, value in json_arguments.items():
+        print(f"{key}: {value}")
+
 if __name__ == "__main__":
-    pass 
-    # arguments = extract_info("Tôi muốn mua điều hòa rẻ nhất")
-    # json_arguments = ElasticHelper().parse_string_to_dict(arguments)
-    # print(json_arguments)
-    # for key, value in json_arguments.items():
-    #     print(f"{key}: {value}")
+    main()

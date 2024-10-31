@@ -26,8 +26,8 @@ set_llm_cache(cache)
 class Pipeline:
     def __init__(self, member_code: str):
         self.member_code = member_code
-        self.llm_rag = ModelLoader().load_rag_model()
-        self.llm_chatchit = ModelLoader().load_chatchit_model()
+        self.llm_rag = ModelLoader.load_rag_model()
+        self.llm_chatchit = ModelLoader.load_chatchit_model()
         self.els_seacher = ElasticQueryEngine(member_code=self.member_code)
         self.chroma_seacher = ChromaQueryEngine(member_code=self.member_code)
         self.user_helper =  UserHelper()  
@@ -168,6 +168,7 @@ class Pipeline:
         """
         result_classify = classify_product(query=query)
         product_id = result_classify['content']
+        print("PRODUCT ID: ", product_id)
         try:
             if product_id == -1:
                 template = PromptTemplate(input_variables=['question', 'user_info'], template=PROMPT_CHATCHIT)
@@ -215,6 +216,9 @@ class Pipeline:
         try:
             demands = extract_info(query)
             response_elastic, products_info = self.els_seacher.search_db(demands)
+            if not response_elastic: # nếu els không search được thì chuyển sang text
+                response = self._handle_text_query(query=query)
+                return response
 
             prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
             response = self._execute_llm_call(self.llm_rag, prompt.format(context=response_elastic, 

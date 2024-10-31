@@ -17,7 +17,7 @@ def decision_search_type(query: str) -> str:
         trả về loại câu hỏi
     """
     with get_openai_callback() as cb:
-        llm_with_output = ModelLoader().load_rag_model().with_structured_output(SeachingDecision)
+        llm_with_output = ModelLoader.load_rag_model().with_structured_output(SeachingDecision)
         type = llm_with_output.invoke(PROMPT_ROUTER.format(query=query)).type
     return {
         'content': type,
@@ -42,7 +42,7 @@ def classify_product(query: str) -> str:
     ).format(query=query)
 
 
-    llm_with_output = ModelLoader().load_rag_model().with_structured_output(ClassfifyProduct)
+    llm_with_output = ModelLoader.load_rag_model().with_structured_output(ClassfifyProduct)
     with get_openai_callback() as cb:
         product_id = llm_with_output.invoke(prompt_template).ID
     return {

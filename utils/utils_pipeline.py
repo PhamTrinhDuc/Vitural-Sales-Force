@@ -121,7 +121,7 @@ class HelperPiline:
         try: 
             result = {}
             response = llm.invoke(AMOUNT_PROMPT.format(output_from_llm=output_from_llm)).content
-            response_json = json.loads(response)
+            response_json = json.loads(json.dumps(response))
             amount = response_json.get("amount", "")
             price = response_json.get("price", "")
             print("AMOUNT: ", amount)

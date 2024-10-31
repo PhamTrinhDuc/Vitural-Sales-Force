@@ -40,7 +40,7 @@ class VectorDBHandler:
     """Handles vector database operations"""
     
     def __init__(self, embedding_model: Optional[OpenAIEmbeddings] = None):
-        self.embedding_model = embedding_model or ModelLoader().load_embed_openai_model()
+        self.embedding_model = embedding_model or ModelLoader.load_embed_openai_model()
     
     def create_or_load_db(self, documents: List[Document], db_path: str) -> Chroma:
         """Create new vector database or load existing one"""

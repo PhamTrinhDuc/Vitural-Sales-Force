@@ -11,7 +11,7 @@ from configs.config_system import LoadConfig
 HELPER = HelperPiline()
 
 def handle_request(
-    timeout_seconds: None,
+    timeSeconds: None,
     InputText: None,
     IdRequest: None,
     UserName: None,
@@ -37,7 +37,7 @@ def handle_request(
             "time_processing": "", 
             "end_message": LoadConfig.SYSTEM_MESSAGE['end_message'],
         }
-        MemberCode_local = MemberCode if MemberCode is not None else "normal"
+        MemberCode_local = MemberCode if MemberCode is not None else "NORMAL"
         Users = {
             "phone_number": PhoneNumber,
             "name": UserName,
@@ -70,11 +70,10 @@ def handle_request(
         results['time_processing'] = f"{time.time() - start_time:.2f}s"
         return results
 
-    # Thực thi với timeout
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(execute_request)
         try:
-            return future.result(timeout=timeout_seconds)
+            return future.result(timeout=timeSeconds)
         except TimeoutError:
             return {
                 "products": [], 
@@ -82,8 +81,8 @@ def handle_request(
                 "terms": [], 
                 "content": LoadConfig.SYSTEM_MESSAGE['error_system'],
                 "status": 408,  # HTTP Status Code for Request Timeout
-                "message": f"Request timed out after {timeout_seconds} seconds", 
-                "time_processing": f"{timeout_seconds:.2f}s",
+                "message": f"Request timed out after {timeSeconds} seconds", 
+                "time_processing": f"{timeSeconds:.2f}s",
                 "end_message": LoadConfig.SYSTEM_MESSAGE['end_message'],
             }
 

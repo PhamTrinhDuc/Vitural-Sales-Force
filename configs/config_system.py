@@ -1,14 +1,10 @@
 import os
 from dataclasses import dataclass
 from dotenv import load_dotenv
+import pandas as pd
 
 load_dotenv()
-# os.environ['LANGCHAIN_TRACING_V2'] = 'true'
-# os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
-# os.environ['LANGCHAIN_API_KEY'] = os.getenv("LANGCHAIN_API_KEY")
 os.environ['OPENAI_API_KEY'] = os.getenv("OPENAI_API_KEY")
-# os.environ['TAVILY_API_KEY'] = os.getenv("TAVILY_API_KEY")
-
 
 @dataclass
 class LoadConfig:
@@ -46,10 +42,15 @@ class LoadConfig:
     # ELASTIC_SEACH_CONFIG
     INDEX_NAME = [index_name.replace("-", "").lower() for index_name in MEMBER_CODE]
     ELASTIC_URL =  'http://10.248.243.105:9200'
-    NUM_SIZE_ELAS =  10
+    NUM_SIZE_ELAS = 4
     QUANTITY_SPECIFICATIONS =  ['số lượng', 'bao nhiêu', 'mấy loại', 'số lượng sản phẩm', 'danh sách', 'tổng số', 'mấy', 'liệt kê số lượng', 'liệt kê', 'số lượng hiện còn', 'danh sách đang còn hàng']
     CHEAP_KEYWORDS =  ["rẻ", "giá rẻ", "giá thấp", "bình dân", "tiết kiệm", "khuyến mãi", "giảm giá", "hạ giá", "giá cả phải chăng", "ưu đãi", "rẻ nhất", "nhỏ nhất"]
     EXPENSIVE_KEYWORDS =  ["giá đắt", "giá cao", "xa xỉ", "sang trọng", "cao cấp", "đắt đỏ", "chất lượng cao", "hàng hiệu", "hàng cao cấp", "thượng hạng", "lớn nhất", "đắt nhất", "giá đắt nhất"]
+
+    # QDRANT CONFIG
+    # INDEX_NAME_QDRANT = "test_collection"
+    INDEX_NAME_QDRANT = "test_hybrid"
+
 
     # DIRECTORIES
     VECTOR_DATABASE_STORAGE = 'data/vector_db/{member_code}'
@@ -78,6 +79,7 @@ class LoadConfig:
     TOP_P = 0.9
     
     NUM_PRODUCT = 22
+    LIST_GROUP_NAME = pd.unique(pd.read_excel("data/data_private/data_member/data_final_NORMAL_merged.xlsx")['group_product_name'].tolist())
     TOP_CONVERSATION = 4
     ID_2_NAME_PRODUCT = {
         1: "ban_la",

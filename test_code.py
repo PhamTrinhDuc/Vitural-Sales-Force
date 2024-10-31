@@ -12,8 +12,9 @@
 # from source.retriever.elastic_search.extract_specifications import extract_info
 # from source.retriever.elastic_search.query_engine_cp import ElasticQueryEngine
 
-# query = "cho tôi xem bếp từ đôi bên bạn ?"
+# query = "bán cho tôi điều hòa"
 # demands = extract_info(query=query)
+# print(demands)
 # response = ElasticQueryEngine(member_code="NORMAL").search_db(demands=demands)
 # print(response[0])
 
@@ -100,20 +101,20 @@
 
 ######### TEST CHAT API CALL ########
 # from source.generate.chat_seasion import Pipeline 
-from api.handle_request import handle_request
+# from api.handle_request import handle_request
 
-response = handle_request(
-    timeout_seconds=50,
-    InputText = "dieu hoa tu 12000",
-    UserName="Hiệp",
-    IdRequest="9989fsd",
-    PhoneNumber='08354945868',
-    Address='Hà Nội',
-    MemberCode="NORMAL",
-    Voice = None,
-    Image=None,
-    NameBot=None)
-print(response)
+# response = handle_request(
+#     timeSeconds=50,
+#     InputText = "cho tôi xem thông tin về bộ nồi inox",
+#     UserName="Duc Pham",
+#     IdRequest="9989fsaasfd",
+#     PhoneNumber='08354945868',
+#     Address='Hà Nội',
+#     MemberCode="NORMAL",
+#     Voice = None,
+#     Image=None,
+#     NameBot=None)
+# print(response)
 
 # from utils.user_helper import UserHelper
 # UserHelper().save_conversation(phone_number="0123456789", id_request="123", query="gmsdgsdm", response="sdmn")
@@ -167,3 +168,11 @@ print(response)
 # from source.data_processing.fast_process import fast_merge, indexing_data
 # fast_merge()
 # indexing_data()
+from source.retriever.elastic_search.extract_specifications import extract_info
+from source.retriever.qdrant.qdrant_cp import QdrantEngine
+
+engine = QdrantEngine()
+query = "Tôi muốn mua điều hòa giá rẻ"
+
+# demands = extract_info(query=query)
+engine.testing(query=query)

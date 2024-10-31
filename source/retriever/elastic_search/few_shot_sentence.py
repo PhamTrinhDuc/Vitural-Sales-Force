@@ -5,7 +5,7 @@ from source.model.loader import ModelLoader
 from configs.config_fewshot import LoadConfig
 
 
-llm = ModelLoader().load_rag_model()
+llm = ModelLoader.load_rag_model()
 
 def split_sentences(text_input: str, examples: Dict) -> str:
 
