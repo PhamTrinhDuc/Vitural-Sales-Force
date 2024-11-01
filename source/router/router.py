@@ -1,9 +1,10 @@
-from langchain_core.prompts import PromptTemplate
 from langchain_community.callbacks.manager import get_openai_callback
-from utils import SeachingDecision, ClassfifyProduct
-from utils import timing_decorator
+from utils import timing_decorator, SeachingDecision
 from source.model.loader import ModelLoader
-from source.prompt.template import PROMPT_ROUTER, PROMPT_CLF_PRODUCT
+from source.prompt.template import PROMPT_ROUTER
+from configs.config_system import LoadConfig
+
+
 
 @timing_decorator
 def decision_search_type(query: str) -> str: 
@@ -18,35 +19,10 @@ def decision_search_type(query: str) -> str:
     """
     with get_openai_callback() as cb:
         llm_with_output = ModelLoader.load_rag_model().with_structured_output(SeachingDecision)
-        type = llm_with_output.invoke(PROMPT_ROUTER.format(query=query)).type
+        type = llm_with_output.invoke(PROMPT_ROUTER.format(query=query, 
+                                                           list_products = LoadConfig.LIST_GROUP_NAME)).type
     return {
         'content': type,
-        'total_token': cb.total_tokens,
-        'total_cost': cb.total_cost
-    }
-
-
-@timing_decorator
-def classify_product(query: str) -> str:
-    """
-    Hàm này để phân loại sản phẩm dựa vào câu hỏi của người dùng.
-    Args:
-        - query: câu hỏi của người dùng
-    Return:
-        - trả về ID của sản phẩm
-    """
-
-    prompt_template = PromptTemplate(
-        input_variables=['query'],
-        template=PROMPT_CLF_PRODUCT
-    ).format(query=query)
-
-
-    llm_with_output = ModelLoader.load_rag_model().with_structured_output(ClassfifyProduct)
-    with get_openai_callback() as cb:
-        product_id = llm_with_output.invoke(prompt_template).ID
-    return {
-        'content': product_id,
         'total_token': cb.total_tokens,
         'total_cost': cb.total_cost
     }

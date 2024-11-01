@@ -4,7 +4,6 @@ import logging
 import pandas as pd
 from pathlib import Path
 from configs.config_system import LoadConfig
-from .convert_data import DataConverter
 from .indexing_data import DataIndexer
 
 # Configure logging
@@ -78,41 +77,10 @@ def fast_merge() -> pd.DataFrame:
                     origin_df.at[index1, 'lifecare_price'] = row2['price']
         origin_df.to_excel(path_merged.format(member_code=code_member), index=False)
 
-
-def create_directory_structure( member_code: str) -> None:
-        """Create necessary directory structure for data processing."""
-        try:
-            Path(LoadConfig.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE.format(
-                member_code=member_code)).mkdir(parents=True, exist_ok=True)
-            Path(LoadConfig.SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE.format(
-                member_code=member_code)).mkdir(parents=True, exist_ok=True)
-            logger.info(f"Created directory structure for member {member_code}")
-        except Exception as e:
-            logger.error(f"Failed to create directories for {member_code}: {str(e)}")
-            raise
-
 def indexing_data():
-    from unidecode import unidecode
-
-    for member_code in LoadConfig.MEMBER_CODE:
-        create_directory_structure(member_code)
-        all_data_path = path_merged.format(member_code=member_code)
-        path_csv_folder = LoadConfig.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE.format(member_code=member_code)
-        df = pd.read_excel(all_data_path)
-
-        for group_name, group_data in df.groupby('group_product_name'):
-            # Xóa dấu và thay thế bằng dấu gạch dưới
-            sanitized_group_name = ''.join(e for e in group_name if e.isalnum() or e.isspace()).replace(' ', '_')
-            csv_file_path = os.path.join(path_csv_folder, f"{unidecode(sanitized_group_name)}.csv")
-            print(csv_file_path)
-            group_data.to_csv(csv_file_path, index=False)
-        
-        converter = DataConverter(member_code=member_code)
-        converter.process_data()
-        
     indexer = DataIndexer()
     indexer.restart_index_name()
-    indexer.embedding_all_product()
+    indexer.embedding_data()
     logger.info(f"Converted and indexed data sucessfully")
 
 

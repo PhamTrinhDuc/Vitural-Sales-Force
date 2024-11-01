@@ -1,6 +1,6 @@
 # Helper functions
 import re
-import json
+import ast
 import markdown
 import logging 
 import pandas as pd
@@ -8,9 +8,6 @@ from typing import List, Dict, Any, Union
 from source.model.loader import ModelLoader
 
 class HelperPiline:
-    def __init__(self):
-        pass
-
     @staticmethod
     def _clean_html(html_text: str) -> str:
         """
@@ -43,7 +40,10 @@ class HelperPiline:
         results = []
         try: 
             for index, row in dataframe.iterrows():
-                if any(str(item).lower() in output_from_llm.lower() or str(item) in query_rewritten for item in (row['product_name'], row['product_info_id'])):
+                if any(str(item).lower() in output_from_llm.lower() or 
+                       str(item) in query_rewritten 
+                       for item in (row['product_name'], row['product_info_id'])):
+                    
                     product = {
                         "product_id": row['product_info_id'],
                         "product_name": row['product_name'],
@@ -54,34 +54,6 @@ class HelperPiline:
         except Exception as e:
             logging.error("PRODUCT SEEKING ERROR: " + str(e))
             return results
-    
-    @staticmethod
-    def _extract_single_number(text: str, mode: str) -> Union[int, None]:
-        """
-        Trích xuất một số duy nhất từ chuỗi văn bản dựa trên chế độ được chỉ định.
-        Args:
-            text (str): Chuỗi văn bản chứa số cần trích xuất.
-            mode (str): Chế độ trích xuất, có thể là 'price' hoặc 'amount'.
-                - 'price': Trích xuất số dạng giá tiền, ví dụ: "1,234.56".
-                - 'amount': Trích xuất số dạng số lượng, ví dụ: "1234.56".
-        Returns:
-            int: Số được trích xuất từ chuỗi văn bản. Nếu không tìm thấy số, trả về None.
-        """
-        if mode == 'price':
-            pattern = r'(\d{1,3}(?:,\d{3})*(?:\.\d+)?)'
-            match = re.search(pattern, text)
-            if match:
-                number_str = match.group(1)
-                number = int(number_str.replace(',', ''))
-                return number
-        elif mode == 'amount':
-            pattern = r'\d+(?:\.\d+)?'
-            match = re.search(pattern, text)
-            
-            if match:
-                number = int(match.group())
-                return number
-        return None
     
     def _product_confirms(self, 
                           output_from_llm: str, 
@@ -99,7 +71,7 @@ class HelperPiline:
         
         """
         
-        llm = ModelLoader().load_rag_model()
+        llm = ModelLoader.load_rag_model()
         AMOUNT_PROMPT = """Lấy ra số lượng sản phẩm và giá sản phẩm khách đã chốt trong form đơn hàng:
         Ví dụ:
         Input:  <p>Thông tin đơn hàng:</p><ul>
@@ -108,33 +80,32 @@ class HelperPiline:
                 <li><strong>Sản phẩm:</strong> Điều hòa MDV - Inverter 9000 BTU  </li>
                 <li><strong>Số lượng:</strong> 3 cái  </li>
                 <li><strong>Giá 1 sản phẩm:</strong> 6,000,000 đồng  </li>
-        Format output: 
-        {
-            "amount": 3,
-            "price": 6,000,000
-        }
+        Format json(không trả markdown): 
+                "amount": 3,
+                "price": 6000000
         ---------
-        From đơn hàng:
+        Đơn hàng:
         {output_from_llm}
-        Lưu ý: trả ra đúng format, không trả ra gì khác"""
+        Lưu ý: trả ra đúng format json ở dạng text, không trả ra gì khác"""
         results = []
-        try: 
+        try:
             result = {}
             response = llm.invoke(AMOUNT_PROMPT.format(output_from_llm=output_from_llm)).content
-            response_json = json.loads(json.dumps(response))
+            print(response)
+            response_json = ast.literal_eval(response)
+            print(type(response_json))
             amount = response_json.get("amount", "")
             price = response_json.get("price", "")
-            print("AMOUNT: ", amount)
-            print("PRICE: ", price)
             if amount:
-                result['amount'] = self._extract_single_number(text=amount, mode='amount')
+                result['amount'] = amount
             if price: 
-                result['price'] = self._extract_single_number(text=price, mode='price')
+                result['price'] =  price
             else:
                 return results
             
             for index, row in dataframe.iterrows():
-                if any(str(item).lower() in output_from_llm.lower() or str(item).lower() in query_rewritten.lower() 
+                if any(str(item).lower() in output_from_llm.lower() or 
+                       str(item).lower() in query_rewritten.lower() 
                        for item in (row['product_name'], row['product_info_id'])):
                     result.update({
                         "product_id": row['product_info_id'],

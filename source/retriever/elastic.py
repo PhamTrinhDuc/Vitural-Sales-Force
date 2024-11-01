@@ -4,15 +4,14 @@ import pandas as pd
 from typing import Dict, List, Tuple, Optional
 from elasticsearch import Elasticsearch
 from utils import timing_decorator
-from .elastic_helper import ElasticHelper
+from utils.utils_retriever import RetrieveHelper
 from configs.config_system import LoadConfig
 
 class ElasticQueryEngine:
-    MATCH_THRESHOLD = 60
 
     def __init__(self, member_code: str):
         self.index_name = member_code.replace("-", "").lower()
-        self.elastic_helper = ElasticHelper()
+        self.elastic_helper = RetrieveHelper()
         self.dataframe = pd.read_excel(LoadConfig.ALL_PRODUCT_FILE_MERGED_STORAGE.format(member_code=member_code))
 
     def create_filter_range(self, field: str, value: str) -> Dict:
@@ -83,7 +82,7 @@ class ElasticQueryEngine:
 
         for field, value in [('lifecare_price', price), ('power', power), ('weight', weight), ('volume', volume)]:
             if value:  # Nếu có thông số cần filter
-                order, word, _value = ElasticHelper().get_keywords(value)
+                order, word, _value = RetrieveHelper().get_keywords(value)
                 if word: # Nếu cần search lớn nhất, nhỏ nhất, min, max
                     query["sort"] = [
                         {field: {"order": order}}
@@ -129,7 +128,7 @@ class ElasticQueryEngine:
             - trả về câu trả lời, list chứa thông tin sản phẩm, và số lượng sản phẩm tìm thấy
         """
         print(demands)
-        client = ElasticHelper().init_elastic(self.dataframe, self.index_name)
+        client = RetrieveHelper().init_elastic(self.dataframe, self.index_name)
         product_name = demands.get('object', '')
         price = demands.get('price', '')
         group_product = demands.get("group", '')
@@ -141,7 +140,6 @@ class ElasticQueryEngine:
                 price, demands.get('power'), demands.get('weight'), demands.get('volume')
             )
             queries.append(query)
-            print("ok")
         
         if len(queries) < 1:
             return None, []

@@ -4,7 +4,7 @@ import json
 import os
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from typing import Dict, Optional
-from source.generate.chat_seasion import Pipeline
+from source.generate.chat_seesion_cp import Pipeline
 from utils.utils_pipeline import HelperPiline
 from configs.config_system import LoadConfig
 

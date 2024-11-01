@@ -33,7 +33,7 @@ class QdrantEngine:
         )
         self.index_name = LoadConfig.INDEX_NAME_QDRANT
         self.jina_model = TextEmbedding(model_name="jinaai/jina-embeddings-v2-base-en")
-        self.bm42_model = SparseTextEmbedding(model_name="Qdrant/bm42-all-minilm-l6-v2-attentions")
+        self.bm42_model = SparseTextEmbedding(model_name="Qdrant/bm25")
         self.late_model = LateInteractionTextEmbedding(model_name="colbert-ir/colbertv2.0")
         self.dataframe = pd.read_excel("data/data_private/data_member/data_final_NORMAL_merged.xlsx")
 
@@ -72,7 +72,7 @@ class QdrantEngine:
                 ),
             },
             sparse_vectors_config={
-                "bm42": models.SparseVectorParams(
+                "bm25": models.SparseVectorParams(
                     modifier=models.Modifier.IDF,
                 )
             }
@@ -110,7 +110,7 @@ class QdrantEngine:
                         },
                         vector={
                             "jina-embeddings-v2": dense_embedding[i].tolist(),
-                            "bm42": bm42_embedding[i].as_object(),
+                            "bm25": bm42_embedding[i].as_object(),
                             "colbertv2.0": late_embedding[i].tolist()
                         },
                     ) for i, _ in enumerate(batch["group_name"])
@@ -153,9 +153,9 @@ class QdrantEngine:
         search_result = self.client.query_points(
             collection_name=self.index_name,
             prefetch=[
-                models.Prefetch(query=sparse_embedding.as_object(), using="bm42", limit=3),
-                models.Prefetch(query=dense_embedding.tolist(), using="jina-embeddings-v2", limit=3),
-                models.Prefetch(query=late_embedding.tolist(), using="colbertv2.0", limit=3),
+                models.Prefetch(query=sparse_embedding.as_object(), using="bm25", limit=5),
+                models.Prefetch(query=dense_embedding.tolist(), using="jina-embeddings-v2", limit=5),
+                models.Prefetch(query=late_embedding.tolist(), using="colbertv2.0", limit=5),
             ],
             query=models.FusionQuery(fusion=models.Fusion.RRF), # <--- Combine the scores of the two embeddings
             query_filter=Filter(
@@ -164,19 +164,19 @@ class QdrantEngine:
                         key="group_product_name", 
                         match=models.MatchValue(value="đèn năng lượng mặt trời")),
 
-                    # models.FieldCondition(
-                    #     key="price",
-                    #     range=models.Range(
-                    #         gte=0,
-                    #         lte=5000000
-                    #     )
-                    # )
+                    models.FieldCondition(
+                        key="price",
+                        range=models.Range(
+                            gte=3000000,
+                            lte=5000000
+                        )
+                    )
                 ],
             ),
             score_threshold=None,
             with_payload=True,
             with_vectors=False,
-            limit=3,
+            limit=5,
         ).points
         return search_result
 
@@ -197,15 +197,6 @@ class QdrantEngine:
 
         results = self.search(query)
         print(self.format_output(results))
-
-        # embedding = list(self.jina_model.embed(documents="HELLO"))
-        # print(embedding)
-
-        # dataset = Dataset.from_pandas(self.dataframe, preserve_index=False)
-        # batch_size = 4
-        # for batch in tqdm(dataset.iter(batch_size=batch_size), total=len(dataset) // batch_size):
-        #     print(batch['group_name'])
-
 
 if __name__ == "__main__":
     query = "bán cho tôi Bộ Lưu Trữ Năng Lượng Mặt Trời SUNTEK 12V/25Ah PLUS" 

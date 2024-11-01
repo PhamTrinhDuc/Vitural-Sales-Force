@@ -1,3 +1,6 @@
+from configs.config_system import LoadConfig
+
+
 PROMPT_HEADER = """
 ##Vai trò:
     0. Bạn tên là Phương Nhi, trợ lý tư vấn bán hàng và chốt đơn tại VCC.
@@ -154,61 +157,13 @@ FORMAT OUTPUT:
     Em giới thiệu sản phẩm này vì ...
 """
 
-PROMPT_CLF_PRODUCT = """
-    Bạn là 1 chuyên gia trong lĩnh vực phân loại câu hỏi của người dùng. Nhiệm vụ của bạn là phân loại câu hỏi của người dùng, dưới đây là các nhãn:
-    bàn là, bàn ủi: 1
-    bếp từ, bếp từ đôi, bếp từ đôi: 2
-    ấm đun nước, bình nước nóng: 3
-    bình nước nóng, máy năng lượng mặt trời: 4
-    công tắc, ổ cắm thông minh, bộ điều khiển thông minh: 5
-    điều hòa, điều hòa daikin, điêu hòa carrier, điều hòa MDV: 6
-    đèn năng lượng mặt trời, đèn trụ cổng, đèn nlmt rời thể , đèn nlmt đĩa bay, bộ đèn led nlmt, đèn đường nlmt, đèn bàn chải nlmt, đèn sân vườn nlmt: 7
-    ghế massage: 8
-    lò vi sóng, lò nướng, nồi lẩu: 9
-    máy giặt: 10
-    máy lọc không khí, máy hút bụi: 11
-    máy lọc nước: 12
-    Máy sấy quần áo: 13
-    máy xay, máy làm sữa hạt, máy ép: 14
-    nồi áp suất: 15
-    nồi chiên không dầu KALITE, Rapido: 16
-    nồi cơm điện : 17
-    robot hút bụi: 18
-    thiết bị camera, camera ngoài trời: 19
-    thiết bị gia dung, nồi thủy tinh, máy ép chậm kalite, quạt sưởi không khí, tủ mát aqua, quạt điều hòa, máy làm sữa hạt: 20
-    thiết bị webcam, bluetooth mic và loa: 21
-    wifi, thiết bị định tuyến: 22
-    Không có sản phầm phù hợp: -1
-
-    Chỉ cần trả ra số tương ứng với nhãn được phân loại.
-    Ví dụ: 
-        input: nồi áp suất nào rẻ nhất
-        output: 16
-
-        input: Điều hòa nào tốt nhất cho phòng 30m2 có chức năng lọc không khí?
-        output: 6
-
-        input: Bên em có bán wifi không ?
-        output: 23
-
-        input: Bán cho anh 5 cái máy bay nhé !!
-        output: -1
-        
-        input: MDV viết tắt là gì?
-        output: 6
-        
-    *Lưu ý: 
-            - Các câu hỏi về top sản phẩm bán chạy hay tên sản phẩm nào đó bán chạy thì trả ra -1.
-            - Nếu hỏi về bảo hành + tên sản phẩm thì phải chạy vào các sản phẩm. Còn hỏi bảo hành chung thì vào -1
-    input: {query}
-    output: 
-    """
-
 PROMPT_ROUTER = """
-Bạn là một chuyên gia trong lĩnh vực phân loại câu hỏi của khách hàng. Nhiệm vụ của bạn là quyết định xem truy vấn của người dùng nên được phân loại vào một trong các danh mục sau: [TEXT, ELS, SIMILARITY, ORDER]. Hãy phân tích cẩn thận nội dung của câu hỏi và tuân theo các hướng dẫn sau:
-1. Danh sách sản phẩm:
-    - Nếu sản phẩm khách hỏi ở ngoài danh sách dưới đây thì trả về TEXT:
-     [bàn là, bàn ủi, bếp từ, bếp từ đôi, ấm đun nước, bình nước nóng, bình nước nóng, máy năng lượng mặt trời, công tắc, ổ cắm thông minh, bộ điều khiển thông minh, điều hòa, điều hòa daikin, điều hòa carrier, điều hòa MDV, đèn năng lượng mặt trời, đèn trụ cổng, đèn nlmt rời thể, đèn nlmt đĩa bay, bộ đèn led nlmt, đèn đường nlmt, đèn bàn chải nlmt, đèn sân vườn nlmt, ghế massage, lò vi sóng, lò nướng, nồi lẩu, máy giặt, máy lọc không khí, máy hút bụi, máy lọc nước, máy sấy quần áo, máy sấy tóc, máy xay, máy làm sữa hạt, máy ép, nồi áp suất, nồi chiên không dầu KALITE, Rapido, nồi cơm điện, robot hút bụi, thiết bị camera, camera ngoài trời, thiết bị gia dụng, nồi thủy tinh, máy ép chậm kalite, quạt sưởi không khí, tủ mát aqua, quạt điều hòa, máy làm sữa hạt, thiết bị webcam, bluetooth mic và loa, wifi, thiết bị định tuyến]
+Bạn là một chuyên gia trong lĩnh vực phân loại câu hỏi của khách hàng. Nhiệm vụ của bạn là quyết định xem truy vấn của người dùng nên được phân loại vào một trong các danh mục sau: [TEXT, ELS, SIMILARITY, ORDER, WEB]. 
+Hãy phân tích nội dung của câu hỏi và tuân theo các hướng dẫn sau:
+1. Truy vấn WEB:
+    - Nếu sản phẩm khách hỏi ở ngoài danh sách nhóm sản phẩm dưới đây hoặc những câu hỏi không liên quan đến sản phẩm, tư vấn, mua bán ... thì trả về WEB
+    Danh sách nhóm sản phẩm: {list_products}
+
 2. Truy vấn ELS:
     - Trả về ELS nếu câu hỏi liên quan đến các thông số của sản phẩm:
     + số lượng, giá cả, đắt nhất, rẻ nhất, lớn nhất, nhỏ nhất, công suất, dung tích, khối lượng, kích thước, trọng lượng, top sản phẩm bán chạy.
@@ -229,20 +184,17 @@ Bạn là một chuyên gia trong lĩnh vực phân loại câu hỏi của khá
     - Trả về ORDER nếu câu hỏi liên quan đến việc đặt hàng, chốt đơn và có các cụm:
      [đặt hàng, chốt đơn, mua, thanh toán, giao hàng, vận chuyển, địa chỉ nhận hàng, thông tin đơn hàng]
     - Không chốt những sản phẩm nằm ngoài danh sách sản phẩm trên
-     
-6. Truy vấn SIMILARITY:
-    - Trả về SIMILARITY|[tên sản phẩm] nếu khách hỏi về sản phẩm tương tự sản phẩm, hoặc chứa các cụm từ sau:
-     [tương tự, giống, tương đương, thay thế]
+
 Ví dụ:
     in: anh muốn xem sản phẩm giống điều hòa Daikin - 9000BTU
     out: SIMILARITY|điều hòa Daikin - 9000BTU
     in: bên em có điều hòa giá đắt nhất là bao nhiêu ?
     out: ELS
     in: Xin chào, tôi cần bạn giải thích GAS là gì?
-    out: TEXT
+    out: WEB
     in: Điều hòa Carrier 2 chiều và điều hòa Daikin 1 chiều Inverter cái nào tốt hơn?
     out: TEXT
-    in: còn sản phẩm nào tương tự điều hòa MDV 1 chiều không?
+    in: sản phẩm nào tương tự điều hòa MDV 1 chiều không?
     out: SIMILARITY|điều hòa MDV 1 chiều
     in: cho anh đặt điều hòa 20 triệu công suất 9000 BTU nhé
     out: ORDER
@@ -258,7 +210,9 @@ Ví dụ:
     in: bán cho anh đèn năng lượng mặt trời bên em nhé
     out: ELS
     in: chốt đơn cho anh máy bay
-    out: TEXT
+    out: WEB
+    in: Chủ tịch nước Việt Nam là ai ? 
+    out: WEB
 
 question: {query}
 """

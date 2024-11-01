@@ -10,7 +10,7 @@ from ragas.metrics import (
 from source.router.router import decision_search_type
 from source.generate.streamlit_chat import chat_interface
 from source.retriever.chroma.retriever import get_context
-from source.retriever.elastic_search.query_engine import search_db
+from source.retriever.elastic import search_db
 from configs.config_system import SYSTEM_CONFIG
 
 

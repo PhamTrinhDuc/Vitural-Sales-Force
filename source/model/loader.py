@@ -6,13 +6,13 @@ class ModelLoader:
 
     @staticmethod
     def load_embed_openai_model() -> OpenAIEmbeddings:
-        embedding_model = OpenAIEmbeddings(model = LoadConfig.EMBEDDING_OPENAI, 
+        embedding_model = OpenAIEmbeddings(model=LoadConfig.EMBEDDING_OPENAI, 
                                             timeout=LoadConfig.TIMEOUT)
         return embedding_model
     
     @staticmethod
     def load_embed_baai_model() -> TextEmbedding:
-        embedding_model = TextEmbedding(model_name = LoadConfig.EMBEDDING_BAAI)
+        embedding_model = TextEmbedding(model_name=LoadConfig.EMBEDDING_BAAI)
         return embedding_model
     
     @staticmethod
@@ -34,7 +34,7 @@ class ModelLoader:
         )
         return chatchit_model
 
-
-def main():
-    model = ModelLoader.load_chatchit_model()
-    print(model)
+    @staticmethod
+    def testing():
+        model = ModelLoader.load_chatchit_model()
+        print(model)

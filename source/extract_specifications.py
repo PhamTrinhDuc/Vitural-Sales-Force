@@ -1,7 +1,7 @@
 import os
 import dotenv
 from openai import OpenAI
-from .elastic_helper import ElasticHelper 
+from utils.utils_retriever import RetrieveHelper 
 from configs.config_system import LoadConfig
 
 
@@ -46,8 +46,12 @@ tools = [
                             "type": "string", 
                             "description": "dung tích của sản phẩm có trong câu hỏi. Ví dụ : 1 lít, 3 mét khối ..."
                         },
+                        "intent": {
+                            "type": "string",
+                            "description": "ý định của người dùng khi hỏi câu hỏi. Ví dụ: mua, tìm hiểu, so sánh, ..."
+                        }
                     },
-                    "required": ["group", "object", "price", "power", "weight", "volume"],
+                    "required": ["group", "object", "price", "power", "weight", "volume", "intent"],
                 },
             },
         }
@@ -71,19 +75,20 @@ def extract_info(query: str):
             tools=tools,
             tool_choice="auto",  # auto is default, but we'll be explicit
         )
-    arguments = openai_response.choices[0].message.tool_calls[0].function.arguments
-
-    specifications = ElasticHelper().parse_string_to_dict(arguments)
-    return specifications
-    # if openai_response.choices[0].message.tool_calls:
+    
+     # if openai_response.choices[0].message.tool_calls:
     #     for i in range(0, len(openai_response.choices[0].message.tool_calls)):
     #         print(f"Function: {openai_response.choices[0].message.tool_calls[i].function.name}\n")
     #         print(f"Arguments: {openai_response.choices[0].message.tool_calls[i].function.arguments}\n")
+    arguments = openai_response.choices[0].message.tool_calls[0].function.arguments
+    
+    specifications = RetrieveHelper().parse_string_to_dict(arguments)
+    return specifications
 
 
 def main():
     arguments = extract_info("Tôi muốn mua điều hòa rẻ nhất")
-    json_arguments = ElasticHelper().parse_string_to_dict(arguments)
+    json_arguments = RetrieveHelper().parse_string_to_dict(arguments)
     print(json_arguments)
     for key, value in json_arguments.items():
         print(f"{key}: {value}")

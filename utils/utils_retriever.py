@@ -11,12 +11,12 @@ from configs.config_system import LoadConfig
 
 dotenv.load_dotenv()
 
-class ElasticHelper:
+class RetrieveHelper:
     def __init__(self):
         pass
 
     @staticmethod
-    def init_elastic(df: pd.DataFrame, index_name: str = LoadConfig.INDEX_NAME) -> Elasticsearch:
+    def init_elastic(df: pd.DataFrame, index_name: str = LoadConfig.INDEX_NAME_ELS) -> Elasticsearch:
         # Create the client instance
         # client = Elasticsearch(
         # # For local development
@@ -80,7 +80,7 @@ class ElasticHelper:
             logging.error(f"An error occurred while connecting to Elastic Search: {str(e)}")
     
     @staticmethod
-    def check_specific_field(field_name: str):
+    def _check_specific_field(field_name: str):
 
         client = Elasticsearch(
             cloud_id=os.getenv("ELASTIC_CLOUD_ID"),
@@ -93,15 +93,15 @@ class ElasticHelper:
                 }
             }
         }
-        result = client.search(index=LoadConfig.INDEX_NAME, body=query, size=10)
+        result = client.search(index=LoadConfig.INDEX_NAME_ELS, body=query, size=10)
         if result:
             print(result)
             print(f"\nCác document có trường '{field_name}':")
         else:
             print(f"\nKhông có document nào có trường '{field_name}'")
 
-        count = client.count(index=LoadConfig.INDEX_NAME)['count']
-        print(f"\nSố lượng document trong index {LoadConfig.INDEX_NAME}: {count}")
+        count = client.count(index=LoadConfig.INDEX_NAME_ELS)['count']
+        print(f"\nSố lượng document trong index {LoadConfig.INDEX_NAME_ELS}: {count}")
     
     @staticmethod
     def parse_string_to_dict(input_string: str) -> dict:

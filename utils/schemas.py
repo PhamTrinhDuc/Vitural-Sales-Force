@@ -6,8 +6,4 @@ class GradeReWrite(BaseModel):
 
 class SeachingDecision(BaseModel):
     """Lựa chọn giữa truy xuất bằng ELS hoặc TEXT, SIMILARITY|[tên sản phẩm] hoặc ORDER"""
-    type: str = Field(description="Giá trị là TEXT hoặc ELS hoặc SIMILARITY|[tên sản phẩm] hoặc ORDER")
-
-class ClassfifyProduct(BaseModel):
-    """Phân loại sản phẩm dựa vào câu hỏi của người dùng"""
-    ID: int = Field(description="ID của loại sản phẩm")
+    type: str = Field(description="Giá trị là TEXT hoặc ELS hoặc SIMILARITY|[tên sản phẩm], ORDER hoặc WEB")

@@ -7,7 +7,6 @@ from pathlib import Path
 from .clean_data import DataProcessor
 from .merge_data import DataMerger
 from .clone_data import download_superapp_data
-from .convert_data import DataConverter
 from .indexing_data import DataIndexer
 from configs.config_system import LoadConfig
 

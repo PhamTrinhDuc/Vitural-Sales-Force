@@ -18,8 +18,8 @@
 # response = ElasticQueryEngine(member_code="NORMAL").search_db(demands=demands)
 # print(response[0])
 
-# from source.retriever.elastic_search.elastic_helper import ElasticHelper
-# es = ElasticHelper()
+# from source.retriever.elastic_search.elastic_helper import RetrieveHelper
+# es = RetrieveHelper()
 # es.check_specific_field("sold_quantity")
 ####### TEST CHAT SEASION ########
 # from source.generate.chat_seasion import chat_interface
@@ -30,11 +30,6 @@
 #     response = chat_interface(query=query)
 #     ic(response)
 
-######### TEST CHAT GRADIO ########
-# from source.generate.gradio_chat import chat_with_history_copy
-# query = "top 10 sản phẩm điều hòa bán chạy 2023"
-# response = chat_with_history_copy(query=query)
-# print(response)
 
 
 ######### TEST CRAWLER ########
@@ -44,9 +39,9 @@
 
 ######### TEST ROUTER ########
 # from source.router.router import decision_search_type
-# query = "bán tôi xem sản phẩm điều hòa MDV 2023 đang bán chạy"
+# query = ""
 # type = decision_search_type(query=query)
-# print("Type:\n", type['content'])
+# print("Type: ", type['content'])
 
 # ######### TEST TOOL SEARCH ########
 # from source.similar_product.searcher import SimilarProductSearchEngine
@@ -71,27 +66,6 @@
 # print(response)
 
 
-######### TEST FQA ########
-# import pandas as pd
-# data  = pd.read_excel("/home/ducpham/Documents/FAQ/Dieu_Hoa/Kịch Bản ChatBot.xlsx")
-
-# data.columns = data.loc[1].values.tolist()
-# data = data.loc[2:].reset_index(drop=True)
-# data = data.drop(columns=['Title', 'Desire', 'Evaluate'])
-# data.head()
-
-
-######### TEST RETRIEVER ########
-# from source.retriever.chroma.retriever import Retriever
-# retriever = Retriever()
-# response = retriever.get_context(query="KPI xử lý bảo hành điều hòa", 
-#                                  product_name="dieu_hoa", 
-#                                  member_code="G-JLVIYR")
-# print(response)
-######### TEST INGEST DATA ########
-# from source.ingest_data.ingestion import IngestBuilder
-# data = IngestBuilder.load_document_chunked()
-
 
 ######### TEST CHAT CLS PRODUCT ########
 # from source.router.router import classify_product
@@ -101,20 +75,21 @@
 
 ######### TEST CHAT API CALL ########
 # from source.generate.chat_seasion import Pipeline 
-# from api.handle_request import handle_request
+from api.handle_request import handle_request
 
-# response = handle_request(
-#     timeSeconds=50,
-#     InputText = "cho tôi xem thông tin về bộ nồi inox",
-#     UserName="Duc Pham",
-#     IdRequest="9989fsaasfd",
-#     PhoneNumber='08354945868',
-#     Address='Hà Nội',
-#     MemberCode="NORMAL",
-#     Voice = None,
-#     Image=None,
-#     NameBot=None)
-# print(response)
+response = handle_request(
+    timeSeconds=50,
+    InputText = "tôi muốn tìm hiểu vài cái wifi",
+    UserName="Duc Pham",
+    IdRequest="998saasfd",
+    PhoneNumber='08354945868',
+    Address='Hà Nội',
+    MemberCode="NORMAL",
+    Voice = None,
+    Image=None,
+    NameBot=None)
+print(response)
+
 
 # from utils.user_helper import UserHelper
 # UserHelper().save_conversation(phone_number="0123456789", id_request="123", query="gmsdgsdm", response="sdmn")
@@ -166,13 +141,22 @@
 
 ########### TEST MERGE DATA ############
 # from source.data_processing.fast_process import fast_merge, indexing_data
-# fast_merge()
 # indexing_data()
-from source.retriever.elastic_search.extract_specifications import extract_info
-from source.retriever.qdrant.qdrant_cp import QdrantEngine
 
-engine = QdrantEngine()
-query = "Tôi muốn mua điều hòa giá rẻ"
+########### TEST RETRIEVER ############
+# from source.retriever.vectorstores.qdrant import QdrantEngine
 
-# demands = extract_info(query=query)
-engine.testing(query=query)
+# engine = QdrantEngine()
+# query = "Tôi muốn mua điều hòa giá rẻ"
+
+# # demands = extract_info(query=query)
+# engine.testing(query=query)
+
+
+# from source.retriever.vectorstores.chroma import ChromaQueryEngine
+
+# enegine = ChromaQueryEngine(member_code="NORMAL")
+# response = enegine.get_context(query="bán cho tôi điều hòa MDV 9000 BTU")
+# print(response)
+
+

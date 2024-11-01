@@ -40,7 +40,7 @@ class LoadConfig:
     VOICE_URL = "http://10.248.243.105:8005/voice"
 
     # ELASTIC_SEACH_CONFIG
-    INDEX_NAME = [index_name.replace("-", "").lower() for index_name in MEMBER_CODE]
+    INDEX_NAME_ELS = [index_name.replace("-", "").lower() for index_name in MEMBER_CODE]
     ELASTIC_URL =  'http://10.248.243.105:9200'
     NUM_SIZE_ELAS = 4
     QUANTITY_SPECIFICATIONS =  ['số lượng', 'bao nhiêu', 'mấy loại', 'số lượng sản phẩm', 'danh sách', 'tổng số', 'mấy', 'liệt kê số lượng', 'liệt kê', 'số lượng hiện còn', 'danh sách đang còn hàng']
@@ -56,8 +56,6 @@ class LoadConfig:
     VECTOR_DATABASE_STORAGE = 'data/vector_db/{member_code}'
     ALL_PRODUCT_FILE_NOT_MERGE_STORAGE = 'data/data_private/data_member/data_final_{member_code}.xlsx'
     ALL_PRODUCT_FILE_MERGED_STORAGE = 'data/data_private/data_member/data_final_{member_code}_merged.xlsx'
-    SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE = 'data/data_private/data_detail_superapp/{member_code}'
-    SPECIFIC_PRODUCT_FOLDER_TXT_STORAGE = 'data/data_private/data_text/{member_code}'
     SIMILAR_PRODUCT_STORAGE = 'data/data_dienmayxanh.csv'
     FEEDBACK_STORAGE = "security/feedback"
     CONVERSATION_STORAGE = 'security/conv_storage'
@@ -81,31 +79,7 @@ class LoadConfig:
     NUM_PRODUCT = 22
     LIST_GROUP_NAME = pd.unique(pd.read_excel("data/data_private/data_member/data_final_NORMAL_merged.xlsx")['group_product_name'].tolist())
     TOP_CONVERSATION = 4
-    ID_2_NAME_PRODUCT = {
-        1: "ban_la",
-        2: "bep_tu",
-        3: "binh_dun_nuoc",
-        4: "binh_nuoc_nong",
-        5: "cong_tac_o_cam_thong_minh",
-        6: "dieu_hoa",
-        7: "dnlmt",
-        8: "ghe_massage_daikiosan",
-        9: "lo_vi_song__lo_nuong",
-        10: "may_giat",
-        11: "may_loc_khong_khi_may_hut_bui",
-        12: "may_loc_nuoc",
-        13: "may_say",
-        14: "may_xay",
-        15: "noi_ap_suat",
-        16: "noi_chien_khong_dau",
-        17: "noi_com_dien",
-        18: "robot_hut_bui",
-        29: "thiet_bi_camera",
-        20: "thiet_bi_gia_dung",
-        21: "thiet_bi_webcam",
-        22: "thiet_bi_wifi",
-    }
-
+  
     MESSAGE = [
         "Chào anh/chị, Viettel Construction cảm ơn anh/chị đã quan tâm đến sản phẩm và dịch vụ của Tổng Công ty. Em có thể hỗ trợ anh/chị thông tin gì không ạ?",
         "Chào mừng anh/chị đã đến với Viettel Construction. Anh/chị cần tìm hiểu sản phẩm nào ạ ?",

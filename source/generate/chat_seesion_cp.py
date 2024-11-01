@@ -11,11 +11,10 @@ from source.model.loader import ModelLoader
 from langchain_community.callbacks.manager import get_openai_callback
 from source.retriever.chroma import ChromaQueryEngine
 from source.router.router import decision_search_type
-# from source.retriever.elastic_search import ElasticQueryEngine, classify_intent
 from source.retriever.elastic import ElasticQueryEngine
 from source.extract_specifications import extract_info
 from source.similar_product.searcher import SimilarProductSearchEngine
-from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_CHATCHIT, PROMPT_ORDER
+from source.prompt.template import PROMPT_HISTORY, PROMPT_HEADER, PROMPT_ORDER
 from utils import GradeReWrite, UserHelper, timing_decorator, PostgreHandler, HelperPiline
 from configs.config_system import LoadConfig
 
@@ -166,32 +165,21 @@ class Pipeline:
             Dict[str, Any]: The response and token usage.
         
         """
-        result_classify = classify_product(query=query)
-        product_id = result_classify['content']
-        print("PRODUCT ID: ", product_id)
         try:
-            if product_id == -1:
-                template = PromptTemplate(input_variables=['question', 'user_info'], template=PROMPT_CHATCHIT)
-                response = self._execute_llm_call(self.llm_chatchit, template.format(question=query, user_info=self.user_info))
-            else:
-                db_name = LoadConfig.ID_2_NAME_PRODUCT[product_id]
-                print("DB NAME: ", db_name)
-                context = self.chroma_seacher.get_context(query=query, product_name=db_name)
-                prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
-                response = self._execute_llm_call(self.llm_rag, prompt.format(context=context, 
-                                                                              question=query, 
-                                                                              user_info=self.user_info))
-                
-                specified_product_data_path = os.path.join(LoadConfig.SPECIFIC_PRODUCT_FOLDER_CSV_STORAGE.format(member_code=self.member_code), db_name + ".csv")
-                specified_product_data  = pd.read_csv(os.path.join(specified_product_data_path))
-                response['products'] = self.pipeline_helper._product_seeking(output_from_llm=response['content'], 
-                                                                             query_rewritten=query, 
-                                                                             dataframe=specified_product_data)
-                response['product_name'] = db_name
-                
+            demands = extract_info(query)
+            context = self.chroma_seacher.get_context(query=query, demands=demands)
+            prompt = PromptTemplate(input_variables=['context', 'question', 'user_info'], template=PROMPT_HEADER)
+            response = self._execute_llm_call(self.llm_rag, prompt.format(context=context, 
+                                                                            question=query, 
+                                                                            user_info=self.user_info))
+            
+            member_data_path = LoadConfig.ALL_PRODUCT_FILE_MERGED_STORAGE.format(member_code=self.member_code)
+            response['products'] = self.pipeline_helper._product_seeking(output_from_llm=response['content'], 
+                                                                            query_rewritten=query,
+                                                                            dataframe=pd.read_excel(member_data_path))
+            response['product_name'] = demands['object']
+            
             response['content'] = self.pipeline_helper._format_to_HTML(markdown_text=response['content'])
-            response['total_token'] += result_classify['total_token']
-            response['total_cost'] += result_classify['total_cost']
         except Exception as e:
             response = {"content": LoadConfig.SYSTEM_MESSAGE['error_system'], 
                         "total_token": 0, 'total_cost': 0,
