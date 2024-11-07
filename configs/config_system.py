@@ -16,15 +16,6 @@ class LoadConfig:
     # SEVER CONFIG
     IP = "0.0.0.0"
     PORT = 7878
-    LINK_SEVER = "https://allinonemobile.congtrinhviettel.com.vn/static"
-
-    # POSTGRES CONFIG
-    # POSTGRES_HOST = "10.248.243.162"
-    # POSTGRES_DB_NAME = "ai_services"
-    # POSTGRES_PASSWORD = "Vcc#2024#"
-    # POSTGRES_USER = "ai_chatbot_admin"
-    # POSTGRES_PORT = 5432
-    # POSTGRE_TIMEOUT = 6
 
     # POSTGRES CONFIG
     POSTGRES_HOST = "127.0.0.1"
@@ -34,10 +25,6 @@ class LoadConfig:
     POSTGRES_PORT = 5432
     POSTGRE_TIMEOUT = 6
 
-
-    # PARAMETER URL CONFIG
-    IMAGE_URL = "http://10.248.243.105:8000/process_image/"
-    VOICE_URL = "http://10.248.243.105:8005/voice"
 
     # ELASTIC_SEACH_CONFIG
     INDEX_NAME_ELS = [index_name.replace("-", "").lower() for index_name in MEMBER_CODE]

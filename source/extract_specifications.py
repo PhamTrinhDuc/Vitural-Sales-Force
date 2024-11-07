@@ -4,12 +4,8 @@ from openai import OpenAI
 from utils.utils_retriever import RetrieveHelper 
 from configs.config_system import LoadConfig
 
-
 dotenv.load_dotenv()
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-# os.environ['LANGCHAIN_TRACING_V2'] = 'true'
-# os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
-# os.environ['LANGCHAIN_API_KEY'] = os.getenv("LANGCHAIN_API_KEY")
 
 
 tools = [

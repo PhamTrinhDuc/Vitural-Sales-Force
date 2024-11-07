@@ -182,7 +182,7 @@ Hãy phân tích nội dung của câu hỏi và tuân theo các hướng dẫn 
      
 5. Truy vấn ORDER:
     - Trả về ORDER nếu câu hỏi liên quan đến việc đặt hàng, chốt đơn và có các cụm:
-     [đặt hàng, chốt đơn, mua, thanh toán, giao hàng, vận chuyển, địa chỉ nhận hàng, thông tin đơn hàng]
+     [đặt hàng, chốt đơn, thanh toán, giao hàng, vận chuyển, địa chỉ nhận hàng, thông tin đơn hàng]
     - Không chốt những sản phẩm nằm ngoài danh sách sản phẩm trên
 
 Ví dụ:
