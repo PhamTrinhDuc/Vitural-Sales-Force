@@ -3,16 +3,10 @@
 
 
 ######## TEST ELASTICSEARCH ########
-# from source.retriever.elastic_search import search_db, classify_intent
-# query = "bán cho tôi sản phẩm điều hòa bán chạy nhất bên bạn "
-# demands = classify_intent(question=query)
-# response = search_db(demands=demands)
-# print(response[0])
+# from source.retriever.elastic import ElasticQueryEngine
+# from source.extract_specifications import extract_info
 
-# from source.retriever.elastic_search.extract_specifications import extract_info
-# from source.retriever.elastic_search.query_engine_cp import ElasticQueryEngine
-
-# query = "bán cho tôi điều hòa"
+# query = "bán cho tôi điều hòa đắt nhất"
 # demands = extract_info(query=query)
 # print(demands)
 # response = ElasticQueryEngine(member_code="NORMAL").search_db(demands=demands)
@@ -74,12 +68,12 @@
 # print(response)
 
 ######### TEST CHAT API CALL ########
-# from source.generate.chat_seasion import Pipeline 
+from source.generate.chat_seasion import Pipeline 
 from api.handle_request import handle_request
 
 response = handle_request(
     timeSeconds=50,
-    InputText = "tôi muốn tìm hiểu vài cái wifi",
+    InputText = "tôi muốn tìm hiểu điều hòa giá tầm 6 triệu",
     UserName="Duc Pham",
     IdRequest="998saasfd",
     PhoneNumber='08354945868',

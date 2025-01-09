@@ -5,7 +5,7 @@ import pandas as pd
 
 load_dotenv()
 os.environ['OPENAI_API_KEY'] = os.getenv("OPENAI_API_KEY")
-
+os.environ["COHERE_API_KEY"] = os.getenv("COHERE_API_KEY")
 @dataclass
 class LoadConfig:
     # API CONFIG

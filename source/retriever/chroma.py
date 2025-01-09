@@ -4,7 +4,8 @@ import pandas as pd
 from typing import List, Tuple, Optional
 from langchain_core.documents import Document
 from langchain_community.vectorstores import Chroma
-from langchain.retrievers import EnsembleRetriever
+from langchain.retrievers import EnsembleRetriever, ContextualCompressionRetriever
+from langchain_cohere import CohereRerank
 from langchain_community.retrievers import BM25Retriever
 from langchain_openai import OpenAIEmbeddings
 from utils import timing_decorator, RetrieveHelper
@@ -41,9 +42,10 @@ class DocumentManager:
                 'weight': row['weight'],
                 'volume': row['volume']
             }
+
             documents.append(Document(content, metadata=metadata))
         return documents
-    
+
 class VectorDBHandler:
     """Handles vector database operations"""
     
@@ -66,15 +68,42 @@ class VectorDBHandler:
 class RetrieverBuilder:
     """Builds and configures retrievers"""
     
-    def build_ensemble_retriever(self, vector_db: Chroma, documents: List[Document], demands: dict[str, any]) -> EnsembleRetriever:
+    def build_ensemble_retriever(self, vector_db: Chroma, 
+                                 documents: List[Document], 
+                                 demands: dict[str, any]) -> ContextualCompressionRetriever:
         """Build ensemble retriever combining BM25 and vector similarity"""
         bm25_retriever = self._create_bm25_retriever(documents=documents)
         vanilla_retriever = self._create_vanilla_retriever(vector_db=vector_db, demands=demands)
-        
-        return EnsembleRetriever(
-            retrievers=[vanilla_retriever, bm25_retriever],
-            weights=[0.5, 0.5]
+        mmr_retriever = self._create_mmr_retriever(vector_db=vector_db, demands=demands)
+
+        ensemble_retriever=  EnsembleRetriever(
+            retrievers=[vanilla_retriever, bm25_retriever, mmr_retriever],
+            weights=[0.4, 0.4, 0.2]
         )
+
+        # compressor = CohereRerank()
+        # compression_retriever = ContextualCompressionRetriever(
+        #     base_compressor=compressor, 
+        #     base_retriever=ensemble_retriever
+        # )
+        return ensemble_retriever
+
+    def _create_mmr_retriever(self, vector_db: Chroma, demands: dict[str, any]) -> Chroma: 
+        "Create MMR retriever"
+
+        # filter = {"price": {"$gte": 0}, "price": {"$lte": 1000000000}}
+        # for key, value in demands.items():
+
+        #     if value and key in ["price", "power", "weight", "volume"]:
+        #         min_val, max_val = RetrieveHelper().parse_specification_range(specification=value)
+        #         filter =  [{key: {"$gte": min_val}, key: {"$lte": max_val}}]
+        #         if key == 'price': break
+
+        return vector_db.as_retriever(
+            search_type="mmr",
+            search_kwargs={"k": LoadConfig.TOP_K_PRODUCT,
+                           "filter": {"group_product_name": demands.get('group', '')}}
+                           )
     
     def _create_bm25_retriever(self, documents: List[Document]) -> BM25Retriever:
         """Create BM25 retriever"""
@@ -85,13 +114,13 @@ class RetrieverBuilder:
     def _create_vanilla_retriever(self, vector_db: Chroma, demands: dict[str, any]) -> Chroma:
         """Create vanilla vector similarity retriever"""
 
-        filter = {"price": {"$gte": 0}, "price": {"$lte": 1000000000}}
-        for key, value in demands.items():
+        # filter = {"price": {"$gte": 0}, "price": {"$lte": 1000000000}}
+        # for key, value in demands.items():
 
-            if value and key in ["price", "power", "weight", "volume"]:
-                min_val, max_val = RetrieveHelper().parse_specification_range(specification=value)
-                filter =  [{key: {"$gte": min_val}, key: {"$lte": max_val}}]
-                if key == 'price': break
+        #     if value and key in ["price", "power", "weight", "volume"]:
+        #         min_val, max_val = RetrieveHelper().parse_specification_range(specification=value)
+        #         filter =  [{key: {"$gte": min_val}, key: {"$lte": max_val}}]
+        #         if key == 'price': break
 
         return vector_db.as_retriever(
             search_type="similarity",

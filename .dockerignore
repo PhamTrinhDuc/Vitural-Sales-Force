@@ -1,0 +1,5 @@
+# Ignore các file không cần thiết
+__pycache__/
+*.pyc
+*.log
+.env
